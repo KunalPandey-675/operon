@@ -130,7 +130,7 @@ export default function TaskDetailsPage({ params }: { params: { id: string } }) 
                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm group-focus-within:bg-white group-focus-within:border-blue-200 transition-all">
                                    <textarea 
                                       placeholder="Write a comment..." 
-                                      className="w-full bg-transparent border-none outline-none resize-none min-h-[100px] text-lg text-gray-700"
+                                      className="w-full min-h-25 resize-none border-none bg-transparent text-lg text-gray-700 outline-none"
                                    />
                                    <div className="flex items-center justify-between mt-4">
                                       <div className="flex gap-2">

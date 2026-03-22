@@ -146,7 +146,7 @@ export default function LandingPage() {
                     <div className="h-3 w-3 rounded-full bg-green-400" />
                   </div>
                    {/* This would be an image or a mockup of the dashboard */}
-                   <div className="aspect-[16/10] bg-gray-50 flex items-center justify-center relative group">
+                   <div className="aspect-16/10 bg-gray-50 flex items-center justify-center relative group">
                       <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                        <span className="text-gray-400 font-medium">Platform Preview</span>
                    </div>

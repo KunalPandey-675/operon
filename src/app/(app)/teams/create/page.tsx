@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus, Users, Layout, Zap, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Users, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -66,7 +66,7 @@ export default function CreateTeamPage() {
                   <Textarea 
                     id="description" 
                     placeholder="What is this team working on?" 
-                    className="min-h-[140px] text-md bg-gray-50 border-gray-100 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-blue-200 resize-none p-4"
+                    className="min-h-35 text-md bg-gray-50 border-gray-100 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-blue-200 resize-none p-4"
                   />
                 </div>
 
@@ -93,29 +93,5 @@ export default function CreateTeamPage() {
           </Card>
         </motion.div>
       </div>
-  );
-}
-
-// Local mock motion to avoid build error if framer-motion is slow
-import { motion as m } from "framer-motion";
-import { ArrowLeft as Al, ArrowRight as Ar, Info as Inf } from "lucide-react";
-
-function ArrowRight(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
   );
 }

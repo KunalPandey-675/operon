@@ -81,7 +81,7 @@ export default function CreateTaskPage() {
                     <Textarea 
                       id="description" 
                       placeholder="What needs to be done? Use markdown for details." 
-                      className="min-h-[250px] text-lg bg-gray-50/50 border-gray-100 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-blue-200 resize-none p-6 rounded-xl leading-relaxed"
+                      className="min-h-62.5 text-lg bg-gray-50/50 border-gray-100 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-blue-200 resize-none p-6 rounded-xl leading-relaxed"
                     />
                   </div>
                 </CardContent>
