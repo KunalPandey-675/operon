@@ -1,21 +1,20 @@
+
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { 
   Zap, 
   ArrowRight, 
   CheckCircle2, 
-  Layers, 
   Users, 
   Shield, 
-  Smartphone,
-  Check
+  Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { LandingPageNavbar } from "@/components/LandingPageNavbar";
 const features = [
   {
     title: "Real-time Collaboration",
@@ -74,29 +73,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Header */}
-      <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">Operon</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-sm font-medium hover:text-blue-600 transition-colors">Features</Link>
-            <Link href="#pricing" className="text-sm font-medium hover:text-blue-600 transition-colors">Pricing</Link>
-            <Link href="#solutions" className="text-sm font-medium hover:text-blue-600 transition-colors">Solutions</Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost">Log In</Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button className="bg-blue-600 hover:bg-blue-700">Start Free Trial</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingPageNavbar />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-20 lg:pt-32 lg:pb-32">

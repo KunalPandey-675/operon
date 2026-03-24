@@ -5,9 +5,7 @@ import Link from "next/link";
 import { 
   ArrowLeft, 
   Calendar, 
-  Clock, 
   User, 
-  Layout, 
   CheckCircle2, 
   Settings,
   MoreVertical,
@@ -20,12 +18,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MOCK_TASKS, MOCK_USERS } from "@/lib/mock-data";
-import { Separator } from "@/components/ui/separator";
 
 export default function TaskDetailsPage({ params }: { params: { id: string } }) {
   const task = MOCK_TASKS.find(t => t.id === params.id) || MOCK_TASKS[0];
@@ -240,7 +237,7 @@ export default function TaskDetailsPage({ params }: { params: { id: string } }) 
   );
 }
 
-function ChevronDown(props: any) {
+function ChevronDown(props: React.ComponentProps<"svg">) {
   return (
     <svg
       {...props}

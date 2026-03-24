@@ -2,34 +2,34 @@
 
 import React from "react";
 import Link from "next/link";
-import { 
-  Bell, 
-  Search, 
-  ChevronDown, 
-  User, 
-  Settings, 
+import {
+  Bell,
+  Search,
+  ChevronDown,
+  User,
+  Settings,
   LogOut,
   Zap
 } from "lucide-react";
 import { MobileSidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function Navbar() {
+export function Navbar({ user }: { user: AppUser }) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
       <div className="flex h-16 items-center px-4 lg:px-6">
         <MobileSidebar />
-        
+
         <Link href="/" className="flex items-center gap-2 mr-6">
           <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
             <Zap className="h-5 w-5 text-white" />
@@ -59,8 +59,8 @@ export function Navbar() {
         <div className="flex-1 flex justify-center max-w-md mx-auto">
           <div className="relative w-full hidden lg:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search tasks, teams, projects..." 
+            <Input
+              placeholder="Search tasks, teams, projects..."
               className="pl-9 h-10 w-full bg-muted/30 border-none shadow-none focus-visible:bg-white focus-visible:ring-1"
             />
           </div>
@@ -71,7 +71,7 @@ export function Navbar() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 border-2 border-background" />
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-2">
@@ -84,8 +84,8 @@ export function Navbar() {
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Alex Johnson</p>
-                  <p className="text-xs leading-none text-muted-foreground">alex@example.com</p>
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -98,9 +98,14 @@ export function Navbar() {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
+              <DropdownMenuItem 
+                className="text-red-600"
+                asChild
+              >
+                <a href="/auth/logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </a>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

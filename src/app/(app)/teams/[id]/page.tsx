@@ -8,20 +8,16 @@ import {
   Settings,
   Users,
   Layout,
-  Calendar,
   Filter,
   Search,
-  MoreVertical,
-  ChevronDown
+  MoreVertical
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { MOCK_TEAMS, MOCK_TASKS, Team, Task } from "@/lib/mock-data";
+import { MOCK_TEAMS, MOCK_TASKS } from "@/lib/mock-data";
 import { TaskCard } from "@/components/TaskCard";
 import { AvatarGroup } from "@/components/AvatarGroup";
-import { Badge } from "@/components/ui/badge";
 
 export default function TeamDetailsPage({ params }: { params: { id: string } }) {
   const team = MOCK_TEAMS.find(t => t.id === params.id) || MOCK_TEAMS[0];

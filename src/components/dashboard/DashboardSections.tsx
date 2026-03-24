@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Filter, FolderOpen, Layout, Plus, Search, Users, type LucideIcon } from "lucide-react";
@@ -6,7 +8,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { Team } from "@/lib/mock-data";
+
+type DashboardMember = {
+  id?: string;
+  user_id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  avatar?: string | null;
+};
+
+type DashboardTeam = {
+  id: string;
+  name: string;
+  description?: string | null;
+  members?: DashboardMember[];
+  taskCount?: number | null;
+};
 
 type StatCardData = {
   label: string;
@@ -120,7 +137,7 @@ export function DashboardControls() {
   );
 }
 
-export function TeamsGrid({ teams }: { teams: Team[] }) {
+export function TeamsGrid({ teams }: { teams: DashboardTeam[] }) {
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
       {teams.map((team, idx) => (
@@ -144,20 +161,24 @@ export function TeamsGrid({ teams }: { teams: Team[] }) {
                 </Badge>
               </CardHeader>
               <CardContent className="pt-4">
-                <p className="h-10 line-clamp-2 text-sm leading-relaxed text-gray-500">{team.description}</p>
+                <p className="h-10 line-clamp-2 text-sm leading-relaxed text-gray-500">{team.description ?? "No description available."}</p>
                 <div className="mt-8 flex items-center justify-between border-t pt-6">
                   <div className="flex -space-x-3 overflow-hidden">
-                    {team.members.map((member, i) => (
-                      <Avatar key={i} className="inline-block h-9 w-9 border-2 border-white ring-2 ring-gray-100">
-                        <AvatarImage src={member.avatar} />
-                        <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    ))}
+                    {(team.members ?? []).map((member, i) => {
+                      const memberLabel = member.name?.trim() || member.email?.split("@")[0] || member.user_id || "U";
+
+                      return (
+                        <Avatar key={member.id ?? `${team.id}-member-${i}`} className="inline-block h-9 w-9 border-2 border-white ring-2 ring-gray-100">
+                          <AvatarImage src={member.avatar ?? undefined} />
+                          <AvatarFallback>{memberLabel.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                      );
+                    })}
                   </div>
                   <div className="flex items-center gap-4 text-xs font-semibold text-gray-500">
                     <div className="flex items-center gap-1.5 rounded-lg border bg-gray-50 px-2.5 py-1.5">
                       <FolderOpen className="h-3.5 w-3.5" />
-                      {team.taskCount} Tasks
+                      {team.taskCount ?? 0} Tasks
                     </div>
                   </div>
                 </div>

@@ -1,15 +1,14 @@
-"use client";
-
 import { DashboardControls, DashboardHeader, DashboardStats, TeamsGrid } from "@/components/dashboard/DashboardSections";
-import { MOCK_TEAMS } from "@/lib/mock-data";
+import { getTeams } from "@/lib/actions/workspace.actions";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const teams = await getTeams()
   return (
     <div className="space-y-8">
       <DashboardHeader />
       <DashboardStats />
       <DashboardControls />
-      <TeamsGrid teams={MOCK_TEAMS} />
+      <TeamsGrid teams={teams} />
     </div>
   );
 }

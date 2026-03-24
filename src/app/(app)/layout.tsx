@@ -1,26 +1,27 @@
-"use client";
+import React from "react";
+import { redirect } from "next/navigation";
+import { auth0 } from "@/lib/auth0";
+import { createUserIfNotExists, fetchUserById } from "@/lib/actions/member.actions";
+import AppShell from "@/components/AppShell";
 
-import React, { useState } from "react";
-import { Navbar } from "../../components/Navbar";
-import { Sidebar } from "../../components/Sidebar";
+export default async function ProtectedAppLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const session = await auth0.getSession();
+  const user = session?.user;
 
-function AppLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-        <main className="flex-1 min-h-[calc(100vh-4rem)] bg-gray-50/50 p-4 transition-all duration-300 md:p-6 lg:p-10">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
-  );
+  if (!user.email_verified) {
+    redirect("/verify-email");
+  }
+
+  await createUserIfNotExists(user);
+  const dbUser = await fetchUserById(user.sub)
+
+  return <AppShell user={dbUser}>{children}</AppShell>;
 }
-
-export { AppLayout };
-export default AppLayout;

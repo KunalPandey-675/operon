@@ -10,13 +10,10 @@ import {
   Sparkles, 
   User, 
   Users,
-  Layout, 
-  CheckCircle2,
   Info,
   Clock,
   ArrowRight
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";

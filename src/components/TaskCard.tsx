@@ -4,11 +4,7 @@ import React from "react";
 import Link from "next/link";
 import {
   Calendar,
-  CheckCircle2,
-  Clock,
   MoreVertical,
-  MessageSquare,
-  Paperclip,
   ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
