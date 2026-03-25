@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
+import UsernameModal from "@/components/onboarding/UsernameModal";
 
 export default function AppShell({ children, user }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <UsernameModal isOpen={!user?.name?.trim()} />
       <Navbar user={user} />
       <div className="flex flex-1">
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
