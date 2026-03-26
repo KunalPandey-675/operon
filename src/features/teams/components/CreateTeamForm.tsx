@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { createWorkspace } from "@/features/teams/server/workspace.mutations";
 import { useCurrentUserId } from "@/components/providers/CurrentUserProvider";
 
@@ -34,7 +35,9 @@ export default function CreateTeamForm() {
     setError(null);
     
     if (!formData.name.trim()) {
-      setError("Team name is required");
+      const message = "Team name is required";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -47,12 +50,17 @@ export default function CreateTeamForm() {
       });
 
       if (result.success) {
-        router.push("/dashboard");
+        toast.success(result.message || "Team created successfully");
+        router.push("/teams");
       } else {
-        setError(result.error || "Failed to create team");
+        const message = result.error || "Failed to create team";
+        setError(message);
+        toast.error(message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

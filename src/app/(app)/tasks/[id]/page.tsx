@@ -24,8 +24,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MOCK_TASKS, MOCK_USERS } from "@/lib/mock-data";
 
-export default function TaskDetailsPage({ params }: { params: { id: string } }) {
-  const task = MOCK_TASKS.find(t => t.id === params.id) || MOCK_TASKS[0];
+export default function TaskDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+   const { id } = React.use(params);
+   const task = MOCK_TASKS.find(t => t.id === id) || MOCK_TASKS[0];
 
   return (
       <div className="max-w-5xl mx-auto py-8">

@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   saveUsernameAction,
   type UsernameActionState,
@@ -13,10 +15,35 @@ type UsernameModalProps = {
 };
 
 export default function UsernameModal({ isOpen }: UsernameModalProps) {
+  const router = useRouter();
+  const lastErrorRef = useRef<string | null>(null);
+  const didToastSuccessRef = useRef(false);
+
   const [state, formAction, pending] = useActionState<UsernameActionState, FormData>(
     saveUsernameAction,
     {}
   );
+
+  useEffect(() => {
+    if (state.error && state.error !== lastErrorRef.current) {
+      toast.error(state.error);
+      lastErrorRef.current = state.error;
+    }
+
+    if (state.success && !didToastSuccessRef.current) {
+      toast.success("Username saved successfully");
+      didToastSuccessRef.current = true;
+      router.refresh();
+    }
+
+    if (!state.error) {
+      lastErrorRef.current = null;
+    }
+
+    if (!state.success) {
+      didToastSuccessRef.current = false;
+    }
+  }, [router, state.error, state.success]);
 
   if (!isOpen) {
     return null;

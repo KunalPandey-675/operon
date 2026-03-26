@@ -2,19 +2,30 @@
 
 import * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
-export function AvatarGroup({ users, max = 3, className }: { users: User[], max?: number, className?: string }) {
+type AvatarUser = {
+  id?: string;
+  user_id?: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
+};
+
+function getUserLabel(user: AvatarUser) {
+  return user.name || user.email || user.user_id || "User";
+}
+
+export function AvatarGroup({ users, max = 3, className }: { users: AvatarUser[], max?: number, className?: string }) {
   const displayedUsers = users.slice(0, max);
   const remaining = users.length - max;
 
   return (
     <div className={cn("flex -space-x-3 overflow-hidden", className)}>
       {displayedUsers.map((user, i) => (
-        <Avatar key={i} className="inline-block border-2 border-white ring-2 ring-gray-100 h-8 w-8 transition-transform hover:scale-110 cursor-pointer">
+        <Avatar key={user.id ?? user.user_id ?? i} className="inline-block border-2 border-white ring-2 ring-gray-100 h-8 w-8 transition-transform hover:scale-110 cursor-pointer">
           <AvatarImage src={user.avatar} />
-          <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{getUserLabel(user).slice(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
       ))}
       {remaining > 0 && (

@@ -3,26 +3,49 @@
 import { createSupabaseClient } from "@/lib/supabase";
 
 export async function getWorkspace() {
-  const supabase = createSupabaseClient();
-  const { data, error } = await supabase
-    .from("teams")
-    .select(`
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+        .from("teams")
+        .select(`
       id,
       name,
+      code,
+      description,
+      created_by,
+      created_at,
       team_member ( id, user_id, role ),
-      tasks ( id, title, status )
+            tasks ( id, title, description, status, priority, created_by, team_id, deadline, created_at, updated_at )
     `);
 
-  if (error) {
-    console.error("getWorkspace failed:", error.message);
-    return [];
-  }
+    if (error) {
+        console.error("getWorkspace failed:", error.message);
+        return [];
+    }
 
-  return (data ?? []).map((t) => ({
-    id: t.id,
-    name: t.name,
-    memberCount: t.team_member?.length ?? 0,
-    taskCount: t.tasks?.length ?? 0,
-    members: t.team_member,
-  }));
+        return (data ?? []) as DbTeamWithRelations[];
+}
+
+export async function getWorkspaceById(id: string) {
+    const supabase = createSupabaseClient();
+        const { data, error } = await supabase
+        .from("teams")
+        .select(`
+      id,
+      name,
+      code,
+      description,
+      created_by,
+      created_at,
+      team_member ( id, user_id, role ),
+            tasks ( id, title, description, status, priority, created_by, team_id, deadline, created_at, updated_at )
+    `)
+        .eq("id", id)
+        .single();
+
+        if (error) {
+                console.error("getWorkspaceById failed:", error.message);
+                return null;
+        }
+
+        return data as DbTeamWithRelations;
 }
