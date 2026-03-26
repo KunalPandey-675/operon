@@ -1,6 +1,6 @@
 import React from "react";
 import { requireCurrentDbUser } from "@/lib/current-user";
-import AppShell from "@/components/AppShell";
+import AppShell from "@/components/layout/AppShell";
 import { CurrentUserProvider } from "@/components/providers/CurrentUserProvider";
 
 export default async function ProtectedAppLayout({

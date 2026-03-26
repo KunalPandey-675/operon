@@ -6,7 +6,7 @@ import { ArrowRight, Calendar, Filter, Plus, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/features/tasks/components/StatusBadge";
 import { MOCK_TASKS, MOCK_TEAMS, TaskStatus } from "@/lib/mock-data";
 
 const statusOptions: Array<"All" | TaskStatus> = ["All", "Pending", "Completed", "Deadline Passed"];

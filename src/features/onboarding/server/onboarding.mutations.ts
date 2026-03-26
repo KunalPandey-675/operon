@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCurrentAuth0User } from "@/lib/current-user";
-import { updateUserNameByAuth0Id } from "@/lib/actions/member.actions";
+import { updateUserNameByAuth0Id } from "@/features/members/server/member.mutations";
 
 const UsernameSchema = z
   .string()

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createWorkspace } from "@/lib/actions/workspace.actions";
+import { createWorkspace } from "@/features/teams/server/workspace.mutations";
 import { useCurrentUserId } from "@/components/providers/CurrentUserProvider";
 
 export default function CreateTeamForm() {

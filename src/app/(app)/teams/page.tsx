@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { LayoutGrid, Plus, Search, Users } from "lucide-react";
-import { AvatarGroup } from "@/components/AvatarGroup";
+import { AvatarGroup } from "@/features/teams/components/AvatarGroup";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

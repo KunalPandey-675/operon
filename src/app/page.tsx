@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { LandingPageNavbar } from "@/components/LandingPageNavbar";
+import { LandingPageNavbar } from "@/components/layout/LandingPageNavbar";
 const features = [
   {
     title: "Real-time Collaboration",

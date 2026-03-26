@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { MOCK_TEAMS, MOCK_TASKS } from "@/lib/mock-data";
-import { TaskCard } from "@/components/TaskCard";
-import { AvatarGroup } from "@/components/AvatarGroup";
+import { TaskCard } from "@/features/tasks/components/TaskCard";
+import { AvatarGroup } from "@/features/teams/components/AvatarGroup";
 
 export default function TeamDetailsPage({ params }: { params: { id: string } }) {
   const team = MOCK_TEAMS.find(t => t.id === params.id) || MOCK_TEAMS[0];

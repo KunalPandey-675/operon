@@ -3,7 +3,8 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import { createUserIfNotExists, fetchUserById } from "@/lib/actions/member.actions";
+import { createUserIfNotExists } from "@/features/members/server/member.mutations";
+import { fetchUserById } from "@/features/members/server/member.queries";
 
 export const getCurrentAuth0User = cache(async () => {
   const session = await auth0.getSession();

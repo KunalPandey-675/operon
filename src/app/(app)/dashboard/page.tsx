@@ -1,5 +1,5 @@
-import { DashboardControls, DashboardHeader, DashboardStats, TeamsGrid } from "@/components/dashboard/DashboardSections";
-import { getWorkspace } from "@/lib/actions/workspace.actions";
+import { DashboardControls, DashboardHeader, DashboardStats, TeamsGrid } from "@/features/dashboard/components/DashboardSections";
+import { getWorkspace } from "@/features/teams/server/workspace.queries";
 
 export default async function DashboardPage() {
   const teams = await getWorkspace()

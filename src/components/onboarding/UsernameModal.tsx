@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   saveUsernameAction,
   type UsernameActionState,
-} from "@/lib/actions/onboarding.actions";
+} from "@/features/onboarding/server/onboarding.mutations";
 
 type UsernameModalProps = {
   isOpen: boolean;

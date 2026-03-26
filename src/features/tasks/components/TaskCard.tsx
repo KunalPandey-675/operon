@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/features/tasks/components/StatusBadge";
 import { Task } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,7 @@ export function TaskCard({ task, idx }: { task: Task, idx: number }) {
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-gray-900 leading-none">{task.assignee.name}</span>
-                  <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight mt-1 truncate max-w-[80px]">Assignee</span>
+                  <span className="mt-1 max-w-20 truncate text-[10px] font-medium uppercase tracking-tight text-gray-400">Assignee</span>
                 </div>
               </div>
 
