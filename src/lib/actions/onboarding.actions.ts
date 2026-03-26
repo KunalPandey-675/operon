@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
-import { auth0 } from "@/lib/auth0";
+import { requireCurrentAuth0User } from "@/lib/current-user";
 import { updateUserNameByAuth0Id } from "@/lib/actions/member.actions";
 
 const UsernameSchema = z
@@ -22,16 +21,7 @@ export async function saveUsernameAction(
   _prevState: UsernameActionState,
   formData: FormData
 ): Promise<UsernameActionState> {
-  const session = await auth0.getSession();
-  const user = session?.user;
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  if (!user.email_verified) {
-    redirect("/verify-email");
-  }
+  const user = await requireCurrentAuth0User();
 
   const parsed = UsernameSchema.safeParse(formData.get("username"));
 
