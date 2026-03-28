@@ -22,6 +22,7 @@ type DbTask = {
   status: DbTaskStatus | null;
   priority: DbTaskPriority | null;
   created_by: string | null;
+  created_by_name?: string | null;
   team_id: string | null;
   deadline: string | null;
   created_at: string | null;

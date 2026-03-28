@@ -8,6 +8,7 @@ export default async function TeamsPage() {
     id: team.id,
     name: team.name,
     description: team.description ?? "",
+    createdBy: team.created_by ?? "",
     taskCount: team.tasks?.length ?? 0,
     members: team.team_member ?? [],
   }));

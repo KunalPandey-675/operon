@@ -1,34 +1,25 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { LayoutGrid, Plus, Search, Users } from "lucide-react";
-import { AvatarGroup } from "@/features/teams/components/AvatarGroup";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-
-type TeamSizeFilter = "All" | "Small" | "Medium" | "Large";
-
-type TeamListMember = {
-  id?: string;
-  user_id?: string;
-  name?: string;
-  email?: string;
-  avatar?: string;
-};
-
-type TeamListItem = {
-  id: string;
-  name: string;
-  description: string;
-  taskCount: number;
-  members: TeamListMember[];
-};
+import { toast } from "sonner";
+import { useCurrentUserId } from "@/components/providers/CurrentUserProvider";
+import { joinWorkspaceByCode } from "@/features/teams/server/workspace.mutations";
+import { TeamsHeaderActions } from "@/features/teams/components/TeamsHeaderActions";
+import { JoinTeamSheet } from "@/features/teams/components/JoinTeamSheet";
+import { TeamsFilters } from "@/features/teams/components/TeamsFilters";
+import { TeamSection } from "@/features/teams/components/TeamSection";
+import { TeamListItem, TeamSizeFilter } from "@/features/teams/components/teams-list.types";
 
 export function TeamsListClient({ teams }: { teams: TeamListItem[] }) {
+  const router = useRouter();
+  const userId = useCurrentUserId();
   const [query, setQuery] = useState("");
   const [sizeFilter, setSizeFilter] = useState<TeamSizeFilter>("All");
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+
 
   const filteredTeams = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -50,69 +41,85 @@ export function TeamsListClient({ teams }: { teams: TeamListItem[] }) {
     });
   }, [query, sizeFilter, teams]);
 
+  const yourTeams = useMemo(
+    () => filteredTeams.filter((team) => Boolean(userId) && team.createdBy === userId),
+    [filteredTeams, userId],
+  );
+
+  const joinedTeams = useMemo(
+    () => filteredTeams.filter((team) => !userId || team.createdBy !== userId),
+    [filteredTeams, userId],
+  );
+
+  const handleJoinTeam = async () => {
+    const normalizedCode = joinCode.trim().toUpperCase();
+    if (!normalizedCode) {
+      toast.error("Team code is required");
+      return;
+    }
+
+    setIsJoining(true);
+    try {
+      const result = await joinWorkspaceByCode({
+        code: normalizedCode,
+        userId: userId ?? undefined,
+      });
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to join team");
+        return;
+      }
+
+      toast.success(result.message || "Joined team successfully");
+      setIsJoinModalOpen(false);
+      setJoinCode("");
+
+      if (result.data?.id) {
+        router.push(`/teams/${result.data.id}`);
+      } else {
+        router.refresh();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to join team";
+      toast.error(message);
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 border-b pb-6 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Teams</h1>
-          <p className="text-gray-500">Browse workspace teams and jump into their task boards.</p>
-        </div>
-        <Link href="/teams/create">
-          <Button className="h-11 bg-blue-600 px-6 font-bold shadow-lg shadow-blue-100 hover:bg-blue-700">
-            <Plus className="mr-2 h-4 w-4" /> Create Team
-          </Button>
-        </Link>
-      </div>
+      <TeamsHeaderActions onOpenJoinModal={() => setIsJoinModalOpen(true)} />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search teams by name or description..."
-            className="h-11 pl-9"
-          />
-        </div>
-        <select
-          value={sizeFilter}
-          onChange={(e) => setSizeFilter(e.target.value as TeamSizeFilter)}
-          className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="All">All team sizes</option>
-          <option value="Small">Small (1-2)</option>
-          <option value="Medium">Medium (3-4)</option>
-          <option value="Large">Large (5+)</option>
-        </select>
-      </div>
+      <JoinTeamSheet
+        open={isJoinModalOpen}
+        onOpenChange={setIsJoinModalOpen}
+        joinCode={joinCode}
+        onJoinCodeChange={setJoinCode}
+        isJoining={isJoining}
+        onSubmit={handleJoinTeam}
+        onCancel={() => setIsJoinModalOpen(false)}
+      />
+
+      <TeamsFilters
+        query={query}
+        onQueryChange={setQuery}
+        sizeFilter={sizeFilter}
+        onSizeFilterChange={setSizeFilter}
+      />
 
       {filteredTeams.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTeams.map((team) => (
-            <Card key={team.id} className="border border-gray-100 bg-white shadow-sm">
-              <CardHeader className="space-y-3">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-blue-50">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <CardTitle className="text-xl">{team.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="min-h-10 text-sm leading-relaxed text-gray-600">{team.description || "No description available."}</p>
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  <span>{team.taskCount} tasks</span>
-                  <span>{team.members.length} members</span>
-                </div>
-                <AvatarGroup users={team.members} max={4} />
-              </CardContent>
-              <CardFooter>
-                <Link href={`/teams/${team.id}`} className="w-full">
-                  <Button variant="outline" className="w-full">
-                    <LayoutGrid className="mr-2 h-4 w-4" /> Open Team
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="space-y-8">
+          <TeamSection
+            title="Your Teams"
+            teams={yourTeams}
+            emptyMessage="You don't own any teams that match the current filters."
+          />
+          <TeamSection
+            title="Joined teams"
+            teams={joinedTeams}
+            emptyMessage="You haven't joined any teams that match the current filters."
+          />
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 p-12 text-center">

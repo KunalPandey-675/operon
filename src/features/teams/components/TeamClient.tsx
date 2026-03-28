@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
+  Check,
+  Copy,
   Plus,
   Settings,
   Users,
@@ -38,6 +40,8 @@ function formatDeadline(deadline: string | null) {
 
 export default function TeamClient({ workspace }: { workspace: DbTeamWithRelations | null }) {
   const [filter, setFilter] = useState("All");
+  const [showInvitePanel, setShowInvitePanel] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!workspace) {
     return (
@@ -68,6 +72,16 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
   const filteredTasks = filter === "All"
     ? normalizedTasks
     : normalizedTasks.filter((t) => t.status === filter);
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(workspace.code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -110,7 +124,12 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
                 0 Members
               </div>
             )}
-            <Button variant="outline" size="sm" className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50"
+              onClick={() => setShowInvitePanel((prev) => !prev)}
+            >
               <UserPlus className="mr-2 h-4 w-4" /> Invite Members
             </Button>
             <div className="h-4 w-px bg-gray-200" />
@@ -119,6 +138,24 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
               {normalizedTasks.length} Active Tasks
             </div>
           </div>
+
+          {showInvitePanel ? (
+            <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Team Code</p>
+                <p className="text-lg font-extrabold tracking-widest text-blue-900">{workspace.code}</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-blue-200 bg-white text-blue-700 hover:bg-blue-100"
+                onClick={handleCopyCode}
+              >
+                {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                {copied ? "Copied" : "Copy to Clipboard"}
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <Link href="/tasks/create">
