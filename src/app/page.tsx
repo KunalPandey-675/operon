@@ -98,7 +98,7 @@ export default function LandingPage() {
               Operon is the next-generation SaaS platform designed to streamline your development workflows, team collaboration, and task management.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/teams">
                 <Button className="h-14 px-10 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 group">
                   Get Started for Free <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -219,7 +219,7 @@ export default function LandingPage() {
           <p className="text-blue-100 text-xl mb-12 max-w-2xl mx-auto font-light leading-relaxed">
             Join thousands of teams using Operon to ship faster and build better products.
           </p>
-          <Link href="/dashboard">
+          <Link href="/teams">
             <Button className="h-16 px-12 bg-white text-blue-600 hover:bg-blue-50 text-xl font-bold rounded-2xl shadow-2xl transition-all hover:scale-105 active:scale-95">
               Start Your Free Trial
             </Button>

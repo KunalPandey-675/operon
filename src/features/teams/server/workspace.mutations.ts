@@ -1,14 +1,14 @@
 "use server";
 
 import { getCurrentUserId } from "@/lib/current-user";
-import { createSupabaseClient } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 function generateTeamCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 async function addTeamMember(teamId: string, userId: string, role: "manager" | "member") {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   return supabase.from("team_member").insert({
     team_id: teamId,
@@ -20,24 +20,18 @@ async function addTeamMember(teamId: string, userId: string, role: "manager" | "
 export async function createWorkspace(formData: {
   name: string;
   description?: string;
-  userId?: string;
 }) {
   try {
-    // Use provided userId (from client), or fetch from Auth0 + Supabase
-    let userId = formData.userId;
+    const userId = await getCurrentUserId();
 
     if (!userId) {
-      userId = await getCurrentUserId();
-
-      if (!userId) {
-        return {
-          success: false,
-          error: "User not found in database",
-        };
-      }
+      return {
+        success: false,
+        error: "User not found in database",
+      };
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseServerClient();
     const workspaceCode = generateTeamCode();
 
     const { data, error } = await supabase
@@ -93,20 +87,15 @@ export async function createWorkspace(formData: {
 
 export async function joinWorkspaceByCode(formData: {
   code: string;
-  userId?: string;
 }) {
   try {
-    let userId = formData.userId;
+    const userId = await getCurrentUserId();
 
     if (!userId) {
-      userId = await getCurrentUserId();
-
-      if (!userId) {
-        return {
-          success: false,
-          error: "User not found in database",
-        };
-      }
+      return {
+        success: false,
+        error: "User not found in database",
+      };
     }
 
     const normalizedCode = formData.code.trim().toUpperCase();
@@ -117,7 +106,7 @@ export async function joinWorkspaceByCode(formData: {
       };
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data: team, error: teamLookupError } = await supabase
       .from("teams")

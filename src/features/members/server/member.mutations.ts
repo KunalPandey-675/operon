@@ -1,30 +1,39 @@
 "use server";
 
-import { createSupabaseClient } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createUserIfNotExists(user: any) {
   if (!user || !user.email_verified) return;
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
-  const { data: existingUser } = await supabase
+  const { data: existingUser, error: existingUserError } = await supabase
     .from("users")
     .select("auth0_id")
     .eq("auth0_id", user.sub)
     .maybeSingle();
 
+  if (existingUserError) {
+    console.error("createUserIfNotExists lookup failed:", existingUserError.message);
+    return;
+  }
+
   if (existingUser) {
     return;
   }
 
-  await supabase.from("users").insert({
+  const { error: insertError } = await supabase.from("users").insert({
     auth0_id: user.sub,
     email: user.email,
     name: "",
   });
+
+  if (insertError) {
+    console.error("createUserIfNotExists insert failed:", insertError.message);
+  }
 }
 
 export async function updateUserNameByAuth0Id(auth0Id: string, name: string) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("users")

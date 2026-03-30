@@ -11,11 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createWorkspace } from "@/features/teams/server/workspace.mutations";
-import { useCurrentUserId } from "@/components/providers/CurrentUserProvider";
 
 export default function CreateTeamForm() {
   const router = useRouter();
-  const userId = useCurrentUserId();
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +43,7 @@ export default function CreateTeamForm() {
     try {
       const result = await createWorkspace({
         name: formData.name,
-        description: formData.description,
-        userId: userId ?? undefined
+        description: formData.description
       });
 
       if (result.success) {
@@ -69,11 +66,11 @@ export default function CreateTeamForm() {
   return (
     <div className="max-w-2xl mx-auto py-8">
       <Link 
-        href="/dashboard" 
+        href="/teams" 
         className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-blue-600 mb-8 transition-colors group"
       >
         <ArrowLeft className="mr-2 h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-        Back to Dashboard
+        Back to Teams
       </Link>
       
       <motion.div
@@ -141,7 +138,7 @@ export default function CreateTeamForm() {
               </div>
             </CardContent>
             <CardFooter className="pt-8 pb-8 flex justify-end gap-3 px-8 border-t bg-gray-50/30 rounded-b-2xl">
-              <Link href="/dashboard">
+              <Link href="/teams">
                 <Button variant="ghost" className="h-12 px-6 font-semibold" disabled={isLoading}>Cancel</Button>
               </Link>
               <Button type="submit" className="h-12 px-8 bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95 group" disabled={isLoading}>

@@ -26,8 +26,8 @@ export function LandingPageNavbar() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <Link href="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
+              <Link href="/tasks">
+                <Button variant="ghost">Open App</Button>
               </Link>
               <a href="/auth/logout">
                 <Button className="bg-blue-600 hover:bg-blue-700">Log Out</Button>

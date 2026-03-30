@@ -1,7 +1,7 @@
 "use server"
 
 import { getCurrentUserId } from "@/lib/current-user";
-import { createSupabaseClient } from "@/lib/supabase"
+import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 export async function createTask(formData: {
     title: string;
@@ -12,7 +12,7 @@ export async function createTask(formData: {
     assigned_user_ids: string[];
     deadline: string | null;
 }) {
-    const supabase = createSupabaseClient();
+    const supabase = await createSupabaseServerClient();
 
     const userId = await getCurrentUserId();
 

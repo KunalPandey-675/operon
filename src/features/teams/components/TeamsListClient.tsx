@@ -62,7 +62,6 @@ export function TeamsListClient({ teams }: { teams: TeamListItem[] }) {
     try {
       const result = await joinWorkspaceByCode({
         code: normalizedCode,
-        userId: userId ?? undefined,
       });
 
       if (!result.success) {

@@ -1,9 +1,9 @@
 "use server";
 
-import { createSupabaseClient } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function fetchUserById(id: any) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data } = await supabase
     .from("users")
@@ -15,7 +15,7 @@ export async function fetchUserById(id: any) {
 }
 
 export async function fetchUsers() {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("users")
     .select(`
@@ -25,14 +25,15 @@ export async function fetchUsers() {
 }
 
 export async function fetchUsersByTeamId(teamId: string) {
-  const supabase = createSupabaseClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("users")
     .select(`
       id,
       name,
-      team_member!inner(team_id)
+      email,
+      team_member!inner(team_id, role)
     `)
     .eq("team_member.team_id", teamId);
 
@@ -41,8 +42,16 @@ export async function fetchUsersByTeamId(teamId: string) {
     return [];
   }
 
-  return (data ?? []).map((user) => ({
-    id: user.id,
-    name: user.name,
-  }));
+  return (data ?? []).map((user) => {
+    const membership = Array.isArray(user.team_member)
+      ? user.team_member[0]
+      : user.team_member;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: membership?.role ?? "member",
+    };
+  });
 }

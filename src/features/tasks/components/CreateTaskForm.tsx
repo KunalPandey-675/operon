@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createTask } from "../server/task.mutation";
 import { fetchUsersByTeamId } from "@/features/members/server/member.queries";
-import { getWorkspace } from "@/features/teams/server/workspace.queries";
+import { getWorkspaceSummary } from "@/features/teams/server/workspace.queries";
 
 const PRIORITY_OPTIONS = [
    { label: "Low", value: "low" },
@@ -86,7 +86,7 @@ export default function CreateTaskForm() {
       const loadData = async () => {
          try {
             setIsLoadingData(true);
-            const teamsData = await getWorkspace();
+            const teamsData = await getWorkspaceSummary();
 
             setTeams(teamsData);
 
@@ -189,11 +189,11 @@ export default function CreateTaskForm() {
    return (
       <div className="max-w-4xl mx-auto py-8">
          <Link
-            href="/dashboard"
+            href="/tasks"
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-blue-600 mb-8 transition-colors group"
          >
             <ArrowLeft className="mr-2 h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-            Back to Workspace
+            Back to Tasks
          </Link>
 
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b">
@@ -368,7 +368,7 @@ export default function CreateTaskForm() {
                               </>
                            )}
                         </Button>
-                        <Link href="/dashboard" className="block w-full">
+                        <Link href="/tasks" className="block w-full">
                            <Button variant="ghost" type="button" className="w-full h-12 font-bold text-gray-400 hover:text-gray-600" disabled={isLoading}>
                               Discard
                            </Button>

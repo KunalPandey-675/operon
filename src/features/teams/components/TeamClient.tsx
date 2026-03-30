@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Check,
   Copy,
+  Eye,
   Plus,
   Settings,
   Users,
@@ -38,9 +39,22 @@ function formatDeadline(deadline: string | null) {
   return date.toLocaleDateString();
 }
 
-export default function TeamClient({ workspace }: { workspace: DbTeamWithRelations | null }) {
+type TeamMemberDetails = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+};
+
+type TeamClientProps = {
+  workspace: DbTeamWithRelations | null;
+  memberDirectory: TeamMemberDetails[];
+};
+
+export default function TeamClient({ workspace, memberDirectory }: TeamClientProps) {
   const [filter, setFilter] = useState("All");
   const [showInvitePanel, setShowInvitePanel] = useState(false);
+  const [showMembersList, setShowMembersList] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!workspace) {
@@ -51,10 +65,10 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
     );
   }
 
-  const members = workspace.team_member ?? [];
+  const workspaceMembers = workspace.team_member ?? [];
   const fallbackAssignee = {
-    id: members[0]?.user_id ?? "unassigned",
-    name: members[0]?.user_id ? `User ${members[0].user_id.slice(0, 6)}` : "Unassigned",
+    id: workspaceMembers[0]?.user_id ?? "unassigned",
+    name: workspaceMembers[0]?.user_id ? `User ${workspaceMembers[0].user_id.slice(0, 6)}` : "Unassigned",
     email: "",
     avatar: "",
   };
@@ -64,7 +78,11 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
     title: task.title,
     description: task.description ?? "No description provided.",
     status: toTaskStatus(task),
-    assignee: fallbackAssignee,
+    assignee: {
+      ...fallbackAssignee,
+      id: task.created_by ?? fallbackAssignee.id,
+      name: task.created_by_name ?? fallbackAssignee.name,
+    },
     dueDate: formatDeadline(task.deadline),
     teamId: workspace.id,
   }));
@@ -88,11 +106,11 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <Link
-          href="/dashboard"
+          href="/teams"
           className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-blue-600 transition-colors group"
         >
           <ArrowLeft className="mr-2 h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-          Back to Dashboard
+          Back to Teams
         </Link>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="h-9 px-3 border-gray-200">
@@ -116,8 +134,8 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
           <p className="text-lg text-gray-500 leading-relaxed font-normal">{workspace.description}</p>
 
           <div className="flex items-center gap-4 pt-2 flex-wrap">
-            {members.length > 0 ? (
-              <AvatarGroup users={members} max={4} />
+            {workspaceMembers.length > 0 ? (
+              <AvatarGroup users={workspaceMembers} max={4} />
             ) : (
               <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
                 <Users className="h-3.5 w-3.5 text-blue-500" />
@@ -131,6 +149,15 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
               onClick={() => setShowInvitePanel((prev) => !prev)}
             >
               <UserPlus className="mr-2 h-4 w-4" /> Invite Members
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-gray-200 text-gray-700 hover:bg-gray-50"
+              onClick={() => setShowMembersList((prev) => !prev)}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              {showMembersList ? "Hide Members" : "View Members"}
             </Button>
             <div className="h-4 w-px bg-gray-200" />
             <div className="flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-widest">
@@ -154,6 +181,46 @@ export default function TeamClient({ workspace }: { workspace: DbTeamWithRelatio
                 {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
                 {copied ? "Copied" : "Copy to Clipboard"}
               </Button>
+            </div>
+          ) : null}
+
+          {showMembersList ? (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3">
+                <p className="text-sm font-semibold text-gray-700">Team Members</p>
+              </div>
+              {memberDirectory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50/50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      <tr>
+                        <th className="px-4 py-3">Name</th>
+                        <th className="px-4 py-3">Email</th>
+                        <th className="px-4 py-3">Role</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                      {memberDirectory.map((member) => (
+                        <tr key={member.id}>
+                          <td className="px-4 py-3 font-medium text-gray-900">
+                            {member.name?.trim() || "Unknown user"}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {member.email?.trim() || "No email"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                              {member.role}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="px-4 py-6 text-sm text-gray-500">No members found for this team yet.</p>
+              )}
             </div>
           ) : null}
         </div>

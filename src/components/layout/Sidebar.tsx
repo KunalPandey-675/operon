@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
-  LayoutDashboard, 
   Users, 
   CheckSquare, 
   BarChart3, 
@@ -20,7 +19,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "Teams", href: "/teams" },
   { icon: CheckSquare, label: "Tasks", href: "/tasks" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
