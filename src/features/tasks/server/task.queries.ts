@@ -1,6 +1,5 @@
 "use server"
 
-import { getCurrentUserId } from "@/lib/current-user"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 type TaskRecord = DbTask;
@@ -13,34 +12,6 @@ export type TaskDetailsRecord = DbTask & {
     creator: TaskUser | null;
     assigned_users: Array<TaskUser & { role: string | null }>;
 };
-
-async function getAccessibleTeamIds(
-    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-    userId: string
-) {
-    const [{ data: ownedTeams, error: ownedError }, { data: memberships, error: membershipsError }] = await Promise.all([
-        supabase
-            .from("teams")
-            .select("id")
-            .eq("created_by", userId),
-        supabase
-            .from("team_member")
-            .select("team_id")
-            .eq("user_id", userId),
-    ]);
-
-    if (ownedError || membershipsError) {
-        console.error("getAccessibleTeamIds failed:", ownedError?.message ?? membershipsError?.message);
-        return [];
-    }
-
-    return Array.from(
-        new Set([
-            ...(ownedTeams ?? []).map((team) => team.id),
-            ...(memberships ?? []).map((membership) => membership.team_id),
-        ].filter((id): id is string => Boolean(id)))
-    );
-}
 
 async function enrichTasksWithCreatorNames(
     supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -87,21 +58,10 @@ async function enrichTasksWithCreatorNames(
 }
 
 export default async function getTasks() {
-    const currentUserId = await getCurrentUserId();
-    if (!currentUserId) {
-        return [];
-    }
-
     const supabase = await createSupabaseServerClient();
-    const teamIds = await getAccessibleTeamIds(supabase, currentUserId);
-    if (teamIds.length === 0) {
-        return [];
-    }
-
     const { data: tasks, error } = await supabase
         .from("tasks")
-        .select('*')
-        .in("team_id", teamIds);
+        .select('*');
 
     if (error) {
         console.error("getTasks failed:", error.message);
@@ -112,17 +72,7 @@ export default async function getTasks() {
 }
 
 export async function getTasksByTeamId(teamId: string) {
-    const currentUserId = await getCurrentUserId();
-    if (!currentUserId) {
-        return [];
-    }
-
     const supabase = await createSupabaseServerClient();
-    const teamIds = await getAccessibleTeamIds(supabase, currentUserId);
-    if (!teamIds.includes(teamId)) {
-        return [];
-    }
-
     const { data: tasks, error } = await supabase
         .from("tasks")
         .select("*")
@@ -164,32 +114,24 @@ export async function getTaskCountsByTeamIds(teamIds: string[]) {
 }
 
 export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | null> {
-    const currentUserId = await getCurrentUserId();
-    if (!currentUserId) {
-        return null;
-    }
-
     const supabase = await createSupabaseServerClient();
 
     const { data: task, error } = await supabase
         .from("tasks")
         .select("*")
         .eq("id", taskId)
-        .single();
+        .maybeSingle();
 
-    if (error || !task) {
-        if (error) {
-            console.error("getTaskById failed:", error.message);
-        }
+    if (error && error.code !== "PGRST116") {
+        console.error("getTaskById failed:", error.message);
+        return null;
+    }
+
+    if (!task) {
         return null;
     }
 
     if (!task.team_id) {
-        return null;
-    }
-
-    const teamIds = await getAccessibleTeamIds(supabase, currentUserId);
-    if (!teamIds.includes(task.team_id)) {
         return null;
     }
 

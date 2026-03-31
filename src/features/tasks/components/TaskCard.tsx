@@ -11,10 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatusBadge } from "@/features/tasks/components/StatusBadge";
-import { Task } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-export function TaskCard({ task, idx }: { task: Task, idx: number }) {
+export function TaskCard({ task, idx }: { task: TaskView, idx: number }) {
   const isOverdue = task.status === "Deadline Passed";
 
   return (

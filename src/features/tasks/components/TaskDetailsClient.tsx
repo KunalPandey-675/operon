@@ -222,9 +222,11 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
         </Link>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl border-gray-200 bg-white">
-            Edit Task
-          </Button>
+          <Link href={`/tasks/${task.id}/settings`}>
+            <Button variant="outline" className="rounded-xl border-gray-200 bg-white">
+              Edit Task
+            </Button>
+          </Link>
           <Button className="rounded-xl bg-emerald-600 px-5 font-semibold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700">
             <CheckCircle2 className="h-4 w-4" />
             Mark Completed

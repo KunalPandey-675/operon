@@ -6,7 +6,6 @@ import { ArrowRight, Calendar, Filter, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/features/tasks/components/StatusBadge";
-import { TaskStatus } from "@/lib/mock-data";
 
 const statusOptions = ["All", "todo", "in_progress", "done"] as const;
 

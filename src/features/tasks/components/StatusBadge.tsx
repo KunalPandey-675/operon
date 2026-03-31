@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Badge } from "@/components/ui/badge"
-import { TaskStatus } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 export function StatusBadge({ status, className }: { status: TaskStatus, className?: string }) {

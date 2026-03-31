@@ -21,7 +21,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/features/tasks/components/TaskCard";
 import { AvatarGroup } from "@/features/teams/components/AvatarGroup";
-import { Task, TaskStatus } from "@/lib/mock-data";
 function toTaskStatus(task: DbTask): TaskStatus {
   const normalized = (task.status ?? "").trim().toLowerCase();
   const isDone = normalized === "done";
@@ -73,7 +72,7 @@ export default function TeamClient({ workspace, memberDirectory }: TeamClientPro
     avatar: "",
   };
 
-  const normalizedTasks: Task[] = (workspace.tasks ?? []).map((task) => ({
+  const normalizedTasks: TaskView[] = (workspace.tasks ?? []).map((task) => ({
     id: task.id,
     title: task.title,
     description: task.description ?? "No description provided.",
@@ -113,9 +112,11 @@ export default function TeamClient({ workspace, memberDirectory }: TeamClientPro
           Back to Teams
         </Link>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="h-9 px-3 border-gray-200">
-            <Settings className="mr-2 h-4 w-4" /> Team Config
-          </Button>
+          <Link href={`/teams/${workspace.id}/settings`}>
+            <Button variant="outline" size="sm" className="h-9 px-3 border-gray-200">
+              <Settings className="mr-2 h-4 w-4" /> Team Config
+            </Button>
+          </Link>
           <Button variant="ghost" size="icon" className="h-9 w-9">
             <MoreVertical className="h-4 w-4" />
           </Button>

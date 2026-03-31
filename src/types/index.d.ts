@@ -13,6 +13,25 @@ type AppShellProps = {
 
 type DbTaskStatus = "todo" | "in_progress" | "done";
 
+type TaskStatus = "Pending" | "Completed" | "Deadline Passed";
+
+type TaskAssigneeView = {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+};
+
+type TaskView = {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  assignee: TaskAssigneeView;
+  dueDate: string;
+  teamId: string;
+};
+
 type DbTaskPriority = "low" | "medium" | "high";
 
 type DbTask = {
