@@ -30,6 +30,7 @@ import type { TaskDetailsRecord } from "@/features/tasks/server/task.queries";
 type TaskDetailsClientProps = {
   task: TaskDetailsRecord | null;
   workspace: DbTeamWithRelations | null;
+  canEdit: boolean;
 };
 
 type ChatMessage = {
@@ -130,7 +131,7 @@ function getPriority(priority: DbTaskPriority | null) {
   return PRIORITY_CONFIG[priority];
 }
 
-export default function TaskDetailsClient({ task, workspace }: TaskDetailsClientProps) {
+export default function TaskDetailsClient({ task, workspace, canEdit }: TaskDetailsClientProps) {
   if (!task) {
     return (
       <Card className="mx-auto max-w-3xl rounded-2xl border-dashed border-gray-200 bg-gray-50/70 shadow-none">
@@ -152,7 +153,7 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
   const progress = getProgress(task.status);
 
   const creatorName = task.creator?.name ?? task.created_by_name ?? "Unknown creator";
-  const creatorAvatar = task.creator?.avatar_url ?? "";
+  const creatorAvatar = (task.creator as any)?.avatar_url ?? "";
   const assignedUsers = task.assigned_users ?? [];
 
   const isOverdue =
@@ -171,7 +172,7 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
     {
       id: "c-2",
       author: assignedUsers[0]?.name ?? "Team Member",
-      avatar: assignedUsers[0]?.avatar_url ?? "",
+      avatar: (assignedUsers[0] as any)?.avatar_url ?? "",
       timestamp: "2h ago",
       text: "Current implementation is in review. I will share updated screenshots in Files.",
     },
@@ -188,7 +189,7 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
     {
       id: "m-2",
       author: assignedUsers[0]?.name ?? "You",
-      avatar: assignedUsers[0]?.avatar_url ?? "",
+      avatar: (assignedUsers[0] as any)?.avatar_url ?? "",
       text: "Yes, I am pushing the remaining fixes this afternoon.",
       timestamp: "9:17 AM",
       mine: true,
@@ -196,14 +197,14 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
     {
       id: "m-3",
       author: assignedUsers[1]?.name ?? "Design",
-      avatar: assignedUsers[1]?.avatar_url ?? "",
+      avatar: (assignedUsers[1] as any)?.avatar_url ?? "",
       text: "I have uploaded the latest icon variants for the sidebar states.",
       timestamp: "9:29 AM",
     },
     {
       id: "m-4",
       author: assignedUsers[0]?.name ?? "You",
-      avatar: assignedUsers[0]?.avatar_url ?? "",
+      avatar: (assignedUsers[0] as any)?.avatar_url ?? "",
       text: "Perfect. I will merge and update this thread once deployed.",
       timestamp: "9:33 AM",
       mine: true,
@@ -222,11 +223,13 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link href={`/tasks/${task.id}/settings`}>
-            <Button variant="outline" className="rounded-xl border-gray-200 bg-white">
-              Edit Task
-            </Button>
-          </Link>
+          {canEdit ? (
+            <Link href={`/tasks/${task.id}/settings`}>
+              <Button variant="outline" className="rounded-xl border-gray-200 bg-white">
+                Edit Task
+              </Button>
+            </Link>
+          ) : null}
           <Button className="rounded-xl bg-emerald-600 px-5 font-semibold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700">
             <CheckCircle2 className="h-4 w-4" />
             Mark Completed
@@ -464,7 +467,7 @@ export default function TaskDetailsClient({ task, workspace }: TaskDetailsClient
                           return (
                             <div key={assignee.id} className="flex items-center gap-3 rounded-xl border border-white bg-white p-3">
                               <Avatar className="h-9 w-9 border border-white ring-2 ring-gray-100">
-                                <AvatarImage src={assignee.avatar_url || undefined} />
+                                <AvatarImage src={(assignee as any).avatar_url || undefined} />
                                 <AvatarFallback>{toInitials(assigneeName)}</AvatarFallback>
                               </Avatar>
                               <div className="min-w-0">

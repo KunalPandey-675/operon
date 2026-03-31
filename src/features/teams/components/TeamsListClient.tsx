@@ -47,7 +47,13 @@ export function TeamsListClient({ teams }: { teams: TeamListItem[] }) {
   );
 
   const joinedTeams = useMemo(
-    () => filteredTeams.filter((team) => !userId || team.createdBy !== userId),
+    () =>
+      filteredTeams.filter(
+        (team) =>
+          Boolean(userId) &&
+          team.createdBy !== userId &&
+          team.members.some((member) => member.user_id === userId),
+      ),
     [filteredTeams, userId],
   );
 

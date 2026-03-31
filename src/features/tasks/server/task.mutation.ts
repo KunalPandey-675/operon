@@ -4,6 +4,43 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUserId } from "@/lib/current-user";
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
+async function isTeamOwner(
+    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+    teamId: string,
+    userId: string
+) {
+    const { data: team, error } = await supabase
+        .from("teams")
+        .select("id, created_by")
+        .eq("id", teamId)
+        .maybeSingle();
+
+    if (error) {
+        return {
+            ok: false,
+            error: error.message,
+        };
+    }
+
+    if (!team?.id) {
+        return {
+            ok: false,
+            error: "Team not found",
+        };
+    }
+
+    if (team.created_by !== userId) {
+        return {
+            ok: false,
+            error: "Only the team owner can perform this action",
+        };
+    }
+
+    return {
+        ok: true,
+    };
+}
+
 export async function createTask(formData: {
     title: string;
     description: string | null;
@@ -21,6 +58,21 @@ export async function createTask(formData: {
         return {
             success: false,
             error: "User not found in database",
+        };
+    }
+
+    if (!formData.team_id) {
+        return {
+            success: false,
+            error: "Team is required to create a task",
+        };
+    }
+
+    const ownerCheck = await isTeamOwner(supabase, formData.team_id, userId);
+    if (!ownerCheck.ok) {
+        return {
+            success: false,
+            error: ownerCheck.error,
         };
     }
 
@@ -124,10 +176,18 @@ export async function renameTask(formData: {
         };
     }
 
-    if (existingTask.created_by !== userId) {
+    if (!existingTask.team_id) {
         return {
             success: false,
-            error: "Only the task owner can rename this task",
+            error: "Task is not linked to a team",
+        };
+    }
+
+    const ownerCheck = await isTeamOwner(supabase, existingTask.team_id, userId);
+    if (!ownerCheck.ok) {
+        return {
+            success: false,
+            error: ownerCheck.error,
         };
     }
 
@@ -192,10 +252,18 @@ export async function deleteTask(formData: { taskId: string }) {
         };
     }
 
-    if (existingTask.created_by !== userId) {
+    if (!existingTask.team_id) {
         return {
             success: false,
-            error: "Only the task owner can delete this task",
+            error: "Task is not linked to a team",
+        };
+    }
+
+    const ownerCheck = await isTeamOwner(supabase, existingTask.team_id, userId);
+    if (!ownerCheck.ok) {
+        return {
+            success: false,
+            error: ownerCheck.error,
         };
     }
 

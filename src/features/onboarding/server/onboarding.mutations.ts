@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireCurrentAuth0User } from "@/lib/current-user";
-import { updateUserNameByAuth0Id } from "@/features/members/server/member.mutations";
+import { requireCurrentSupabaseUser } from "@/lib/current-user";
+import { updateUserNameByUserId } from "@/features/members/server/member.mutations";
 
 const UsernameSchema = z
   .string()
@@ -21,7 +21,7 @@ export async function saveUsernameAction(
   _prevState: UsernameActionState,
   formData: FormData
 ): Promise<UsernameActionState> {
-  const user = await requireCurrentAuth0User();
+  const user = await requireCurrentSupabaseUser();
 
   const parsed = UsernameSchema.safeParse(formData.get("username"));
 
@@ -32,7 +32,7 @@ export async function saveUsernameAction(
     };
   }
 
-  const result = await updateUserNameByAuth0Id(user.sub, parsed.data);
+  const result = await updateUserNameByUserId(user.id, parsed.data);
 
   if (!result.success) {
     return {

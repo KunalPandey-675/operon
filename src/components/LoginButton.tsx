@@ -1,11 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function LoginButton() {
+  const router = useRouter();
+
   const handleLogin = () => {
     toast.info("Redirecting to login...");
-    window.location.assign("/auth/login");
+    router.push("/auth/login");
   };
 
   return (

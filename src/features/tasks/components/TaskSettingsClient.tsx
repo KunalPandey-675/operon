@@ -47,7 +47,7 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
     e.preventDefault();
 
     if (!isOwner) {
-      toast.error("Only the task owner can rename this task");
+      toast.error("Only the team owner can rename this task");
       return;
     }
 
@@ -81,7 +81,7 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
 
   const handleDelete = async () => {
     if (!isOwner) {
-      toast.error("Only the task owner can delete this task");
+      toast.error("Only the team owner can delete this task");
       return;
     }
 
@@ -129,7 +129,7 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
         <Card className="rounded-2xl border-amber-200 bg-amber-50/80 shadow-none">
           <CardContent className="flex items-start gap-3 p-5 text-amber-800">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p className="text-sm font-medium">Only the task owner can change task settings.</p>
+            <p className="text-sm font-medium">Only the team owner can change task settings.</p>
           </CardContent>
         </Card>
       ) : null}

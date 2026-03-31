@@ -1,14 +1,15 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getCurrentUserId } from "@/lib/current-user";
 
-export async function fetchUserById(id: any) {
+export async function fetchUserById(id: string) {
   const supabase = await createSupabaseServerClient();
 
   const { data } = await supabase
     .from("users")
     .select("*")
-    .eq("auth0_id", id)
+    .eq("id", id)
     .single();
 
   return data;
@@ -25,33 +26,82 @@ export async function fetchUsers() {
 }
 
 export async function fetchUsersByTeamId(teamId: string) {
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase
-    .from("users")
-    .select(`
-      id,
-      name,
-      email,
-      team_member!inner(team_id, role)
-    `)
-    .eq("team_member.team_id", teamId);
-
-  if (error) {
-    console.error("fetchUsersByTeamId failed:", error.message);
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return [];
   }
 
-  return (data ?? []).map((user) => {
-    const membership = Array.isArray(user.team_member)
-      ? user.team_member[0]
-      : user.team_member;
+  const supabase = await createSupabaseServerClient();
+
+  const [{ data: ownedTeam, error: ownedTeamError }, { data: membership, error: membershipError }] = await Promise.all([
+    supabase
+      .from("teams")
+      .select("id")
+      .eq("id", teamId)
+      .eq("created_by", userId)
+      .maybeSingle(),
+    supabase
+      .from("team_member")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+
+  if (ownedTeamError) {
+    console.error("fetchUsersByTeamId owner check failed:", ownedTeamError.message);
+  }
+
+  if (membershipError) {
+    console.error("fetchUsersByTeamId membership check failed:", membershipError.message);
+  }
+
+  if (!ownedTeam?.id && !membership?.id) {
+    return [];
+  }
+
+  const { data: members, error: membersError } = await supabase
+    .from("team_member")
+    .select("user_id, role")
+    .eq("team_id", teamId);
+
+  if (membersError) {
+    console.error("fetchUsersByTeamId members failed:", membersError.message);
+    return [];
+  }
+
+  const uniqueUserIds = Array.from(new Set((members ?? []).map((member) => member.user_id).filter(Boolean)));
+
+  let usersById = new Map<string, { name: string | null; email: string | null }>();
+  if (uniqueUserIds.length > 0) {
+    const { data: users, error: usersError } = await supabase
+      .from("users")
+      .select("id, name, email")
+      .in("id", uniqueUserIds);
+
+    if (usersError) {
+      console.error("fetchUsersByTeamId users lookup failed:", usersError.message);
+    } else {
+      usersById = new Map(
+        (users ?? []).map((user) => [
+          user.id,
+          {
+            name: user.name ?? null,
+            email: user.email ?? null,
+          },
+        ])
+      );
+    }
+  }
+
+  return (members ?? []).map((member) => {
+    const user = usersById.get(member.user_id);
 
     return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: membership?.role ?? "member",
+      id: member.user_id,
+      name: user?.name ?? null,
+      email: user?.email ?? null,
+      role: member.role ?? "member",
     };
   });
 }

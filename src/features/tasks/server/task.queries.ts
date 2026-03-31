@@ -1,17 +1,78 @@
 "use server"
 
+import { getCurrentUserId } from "@/lib/current-user"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 type TaskRecord = DbTask;
 type TaskUser = {
     id: string;
     name: string | null;
+    email: string | null;
+    avatar_url: string | null;
 };
 
 export type TaskDetailsRecord = DbTask & {
     creator: TaskUser | null;
     assigned_users: Array<TaskUser & { role: string | null }>;
 };
+
+function toDisplayName(user: { name?: string | null; email?: string | null } | null, fallbackId?: string | null) {
+    const preferredName = user?.name?.trim();
+    if (preferredName) {
+        return preferredName;
+    }
+
+    const email = user?.email?.trim();
+    if (email) {
+        return email;
+    }
+
+    if (fallbackId) {
+        return `User ${fallbackId.slice(0, 6)}`;
+    }
+
+    return null;
+}
+
+async function getAccessibleTeamIds(
+    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+    userId: string
+) {
+    const [ownedTeamsResult, memberRowsResult] = await Promise.all([
+        supabase
+            .from("teams")
+            .select("id")
+            .eq("created_by", userId),
+        supabase
+            .from("team_member")
+            .select("team_id")
+            .eq("user_id", userId),
+    ]);
+
+    if (ownedTeamsResult.error) {
+        console.error("getAccessibleTeamIds owned teams lookup failed:", ownedTeamsResult.error.message);
+    }
+
+    if (memberRowsResult.error) {
+        console.error("getAccessibleTeamIds memberships lookup failed:", memberRowsResult.error.message);
+    }
+
+    const teamIds = new Set<string>();
+
+    for (const team of ownedTeamsResult.data ?? []) {
+        if (team.id) {
+            teamIds.add(team.id);
+        }
+    }
+
+    for (const membership of memberRowsResult.data ?? []) {
+        if (membership.team_id) {
+            teamIds.add(membership.team_id);
+        }
+    }
+
+    return Array.from(teamIds);
+}
 
 async function enrichTasksWithCreatorNames(
     supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -38,7 +99,7 @@ async function enrichTasksWithCreatorNames(
 
     const { data: users, error: usersError } = await supabase
         .from("users")
-        .select("id, name")
+        .select("id, name, email")
         .in("id", creatorIds);
 
     if (usersError) {
@@ -49,19 +110,41 @@ async function enrichTasksWithCreatorNames(
         }));
     }
 
-    const userNameById = new Map(users?.map((user) => [user.id, user.name ?? null]));
+    const usersById = new Map(
+        (users ?? []).map((user) => [
+            user.id,
+            {
+                name: user.name ?? null,
+                email: user.email ?? null,
+            },
+        ])
+    );
 
     return tasks.map((task) => ({
         ...task,
-        created_by_name: task.created_by ? (userNameById.get(task.created_by) ?? null) : null,
+        created_by_name: task.created_by
+            ? (toDisplayName(usersById.get(task.created_by) ?? null, task.created_by) ?? "Unknown user")
+            : null,
     }));
 }
 
 export default async function getTasks() {
     const supabase = await createSupabaseServerClient();
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+        return [];
+    }
+
+    const accessibleTeamIds = await getAccessibleTeamIds(supabase, userId);
+    if (accessibleTeamIds.length === 0) {
+        return [];
+    }
+
     const { data: tasks, error } = await supabase
         .from("tasks")
-        .select('*');
+        .select("*")
+        .in("team_id", accessibleTeamIds);
 
     if (error) {
         console.error("getTasks failed:", error.message);
@@ -73,6 +156,17 @@ export default async function getTasks() {
 
 export async function getTasksByTeamId(teamId: string) {
     const supabase = await createSupabaseServerClient();
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+        return [];
+    }
+
+    const accessibleTeamIds = await getAccessibleTeamIds(supabase, userId);
+    if (!accessibleTeamIds.includes(teamId)) {
+        return [];
+    }
+
     const { data: tasks, error } = await supabase
         .from("tasks")
         .select("*")
@@ -115,6 +209,16 @@ export async function getTaskCountsByTeamIds(teamIds: string[]) {
 
 export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | null> {
     const supabase = await createSupabaseServerClient();
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+        return null;
+    }
+
+    const accessibleTeamIds = await getAccessibleTeamIds(supabase, userId);
+    if (accessibleTeamIds.length === 0) {
+        return null;
+    }
 
     const { data: task, error } = await supabase
         .from("tasks")
@@ -132,6 +236,10 @@ export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | n
     }
 
     if (!task.team_id) {
+        return null;
+    }
+
+    if (!accessibleTeamIds.includes(task.team_id)) {
         return null;
     }
 
@@ -163,7 +271,7 @@ export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | n
     if (allUserIds.length > 0) {
         const { data: users, error: usersError } = await supabase
             .from("users")
-            .select("id, name")
+            .select("id, name, email")
             .in("id", allUserIds);
 
         if (usersError) {
@@ -175,6 +283,8 @@ export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | n
                     {
                         id: user.id,
                         name: user.name ?? null,
+                        email: user.email ?? null,
+                        avatar_url: null,
 
                     },
                 ])
@@ -203,12 +313,24 @@ export async function getTaskById(taskId: string): Promise<TaskDetailsRecord | n
         const user = usersById.get(id);
         return {
             id,
-            name: user?.name ?? null,
+            name: toDisplayName(user ?? null, id),
+            email: user?.email ?? null,
+            avatar_url: user?.avatar_url ?? null,
             role: roleByUserId.get(id) ?? null,
         };
     });
 
-    const creator = task.created_by ? usersById.get(task.created_by) ?? null : null;
+    const creator = task.created_by
+        ? {
+            ...(usersById.get(task.created_by) ?? {
+                id: task.created_by,
+                name: null,
+                email: null,
+                avatar_url: null,
+            }),
+            name: toDisplayName(usersById.get(task.created_by) ?? null, task.created_by),
+        }
+        : null;
 
     return {
         ...(task as TaskRecord),

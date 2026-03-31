@@ -1,14 +1,17 @@
 import { getTaskById } from "@/features/tasks/server/task.queries";
 import { getWorkspaceById } from "@/features/teams/server/workspace.queries";
 import TaskDetailsClient from "@/features/tasks/components/TaskDetailsClient";
+import { getCurrentUserId } from "@/lib/current-user";
 
 export default async function TaskDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const task = await getTaskById(id);
+  const [task, userId] = await Promise.all([getTaskById(id), getCurrentUserId()]);
 
   const workspace = task?.team_id
     ? await getWorkspaceById(task.team_id)
     : null;
 
-  return <TaskDetailsClient task={task} workspace={workspace} />;
+  const canEdit = Boolean(workspace && userId && workspace.created_by === userId);
+
+  return <TaskDetailsClient task={task} workspace={workspace} canEdit={canEdit} />;
 }

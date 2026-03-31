@@ -3,13 +3,18 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createUserIfNotExists(user: any) {
-  if (!user || !user.email_verified) return;
+  if (!user || !user.id) return;
   const supabase = await createSupabaseServerClient();
+  const metadataUsername = user.user_metadata?.username;
+  const normalizedUsername =
+    typeof metadataUsername === "string" && metadataUsername.trim().length > 0
+      ? metadataUsername.trim()
+      : null;
 
   const { data: existingUser, error: existingUserError } = await supabase
     .from("users")
-    .select("auth0_id")
-    .eq("auth0_id", user.sub)
+    .select("id, name")
+    .eq("id", user.id)
     .maybeSingle();
 
   if (existingUserError) {
@@ -18,30 +23,56 @@ export async function createUserIfNotExists(user: any) {
   }
 
   if (existingUser) {
+    if (!existingUser.name?.trim() && normalizedUsername) {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ name: normalizedUsername })
+        .eq("id", user.id);
+
+      if (updateError) {
+        console.error("createUserIfNotExists metadata update failed:", updateError.message);
+      }
+    }
+
     return;
   }
 
   const { error: insertError } = await supabase.from("users").insert({
-    auth0_id: user.sub,
+    id: user.id,
     email: user.email,
-    name: "",
+    name: normalizedUsername,
   });
+
+  if (insertError?.code === "23505" && normalizedUsername) {
+    const { error: retryError } = await supabase.from("users").insert({
+      id: user.id,
+      email: user.email,
+      name: null,
+    });
+
+    if (!retryError) {
+      return;
+    }
+
+    console.error("createUserIfNotExists retry insert failed:", retryError.message);
+    return;
+  }
 
   if (insertError) {
     console.error("createUserIfNotExists insert failed:", insertError.message);
   }
 }
 
-export async function updateUserNameByAuth0Id(auth0Id: string, name: string) {
+export async function updateUserNameByUserId(userId: string, name: string) {
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase
     .from("users")
     .update({ name })
-    .eq("auth0_id", auth0Id);
+    .eq("id", userId);
 
   if (error) {
-    console.error("updateUserNameByAuth0Id failed:", error.message);
+    console.error("updateUserNameByUserId failed:", error.message);
     return { success: false as const, error: error.message };
   }
 

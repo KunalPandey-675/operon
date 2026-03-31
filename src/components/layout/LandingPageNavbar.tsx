@@ -1,13 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { createClient } from "@/lib/supabase-client";
+import type { User } from "@supabase/supabase-js";
 
 export function LandingPageNavbar() {
-  const { user } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoading(false);
+    };
+
+    getUser();
+  }, [supabase]);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
@@ -24,14 +39,14 @@ export function LandingPageNavbar() {
           <Link href="#solutions" className="text-sm font-medium hover:text-blue-600 transition-colors">Solutions</Link>
         </div>
         <div className="flex items-center gap-4">
-          {user ? (
+          {!isLoading && user ? (
             <>
-              <Link href="/tasks">
+              <Link href="/dashboard">
                 <Button variant="ghost">Open App</Button>
               </Link>
-              <a href="/auth/logout">
+              <Link href="/auth/logout">
                 <Button className="bg-blue-600 hover:bg-blue-700">Log Out</Button>
-              </a>
+              </Link>
             </>
           ) : (
             <>
