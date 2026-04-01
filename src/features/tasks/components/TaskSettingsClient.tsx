@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { TaskDetailsRecord } from "@/features/tasks/server/task.queries";
-import { deleteTask, renameTask } from "@/features/tasks/server/task.mutation";
+import { deleteTask, renameTask } from "@/features/tasks/server/task.mutations";
 
 type TaskSettingsClientProps = {
   task: TaskDetailsRecord | null;

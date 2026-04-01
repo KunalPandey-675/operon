@@ -1,6 +1,5 @@
 "use server";
 
-import { getCurrentUserId } from "@/lib/current-user";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 type TeamWithMembers = DbTeam & {
@@ -15,11 +14,6 @@ function mapSummaryTeams(teams: TeamWithMembers[]): DbTeamWithRelations[] {
 }
 
 export async function getWorkspaceSummary() {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-        return [];
-    }
-
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
         .from("teams")
@@ -38,21 +32,10 @@ export async function getWorkspaceSummary() {
         return [];
     }
 
-    const scopedTeams = ((data ?? []) as TeamWithMembers[]).filter(
-        (team) =>
-            team.created_by === userId ||
-            (team.team_member ?? []).some((member) => member.user_id === userId),
-    );
-
-    return mapSummaryTeams(scopedTeams);
+    return mapSummaryTeams((data ?? []) as TeamWithMembers[]);
 }
 
 export async function getWorkspaceById(id: string) {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-        return null;
-    }
-
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
         .from("teams")
@@ -77,18 +60,8 @@ export async function getWorkspaceById(id: string) {
         return null;
     }
 
-    const team = data as TeamWithMembers;
-
-    const canAccessTeam =
-        team.created_by === userId ||
-        (team.team_member ?? []).some((member) => member.user_id === userId);
-
-    if (!canAccessTeam) {
-        return null;
-    }
-
     return {
-        ...team,
+        ...(data as TeamWithMembers),
         tasks: [],
     } as DbTeamWithRelations;
 }

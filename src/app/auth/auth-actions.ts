@@ -1,4 +1,4 @@
-    "use server";
+  "use server";
 
 import { createSupabaseAuthClient } from "@/lib/supabase-auth";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -8,18 +8,16 @@ export async function loginWithEmailPassword(
   password: string
 ) {
   try {
-    // First, try to login with email directly
-    let email = emailOrUsername;
-    
-    // Check if input is username (doesn't contain @)
-    if (!emailOrUsername.includes("@")) {
-      // Look up email by username
+    const value = emailOrUsername.trim();
+    let email = value;
+
+    if (!value.includes("@")) {
       const supabase = await createSupabaseServerClient();
       const { data: user, error: lookupError } = await supabase
         .from("users")
         .select("email")
-        .eq("name", emailOrUsername)
-        .single();
+        .eq("name", value)
+        .maybeSingle();
 
       if (lookupError || !user?.email) {
         return {
@@ -29,7 +27,6 @@ export async function loginWithEmailPassword(
       email = user.email;
     }
 
-    // Now login with the email
     const supabaseAuth = await createSupabaseAuthClient();
     const { error, data } = await supabaseAuth.auth.signInWithPassword({
       email,
@@ -55,7 +52,6 @@ export async function signUpWithEmail(
   try {
     const normalizedUsername = username.trim();
 
-    // Validate username
     if (!normalizedUsername) {
       return { error: "Username is required" };
     }
@@ -68,13 +64,11 @@ export async function signUpWithEmail(
       return { error: "Username can only contain letters, numbers, underscores, and hyphens" };
     }
 
-    // Create auth user
     const supabaseAuth = await createSupabaseAuthClient();
     const { error: signUpError, data } = await supabaseAuth.auth.signUp({
-      email,
+      email: email.trim(),
       password,
       options: {
-        // emailRedirectTo: `${process.env.NODE_ENV === "production" ? "https://operon.app" : "http://localhost:3000"}/auth/callback`,
         data: {
           username: normalizedUsername,
         },

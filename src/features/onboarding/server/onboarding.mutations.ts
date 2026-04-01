@@ -32,7 +32,7 @@ export async function saveUsernameAction(
     };
   }
 
-  const result = await updateUserNameByUserId(user.id, parsed.data);
+  const result = await updateUserNameByUserId(parsed.data);
 
   if (!result.success) {
     return {

@@ -21,7 +21,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { createTask } from "../server/task.mutation";
+import { createTask } from "../server/task.mutations";
 import { fetchUsersByTeamId } from "@/features/members/server/member.queries";
 import { getWorkspaceSummary } from "@/features/teams/server/workspace.queries";
 

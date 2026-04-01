@@ -1,5 +1,6 @@
 "use server";
 
+import { getCurrentUserId } from "@/lib/current-user";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createUserIfNotExists(user: any) {
@@ -63,7 +64,12 @@ export async function createUserIfNotExists(user: any) {
   }
 }
 
-export async function updateUserNameByUserId(userId: string, name: string) {
+export async function updateUserNameByUserId(name: string) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false as const, error: "User not found in database" };
+  }
+
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase

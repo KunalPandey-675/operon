@@ -1,18 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { 
-  Users, 
-  CheckSquare, 
-  BarChart3, 
-  Settings, 
-  ChevronLeft, 
-  Menu,
-  Zap
-} from "lucide-react";
+import { BarChart3, CheckSquare, ChevronLeft, Menu, Settings, Users, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,12 +20,11 @@ export function Sidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCo
   const pathname = usePathname();
 
   return (
-    <motion.aside
+    <aside
       className={cn(
         "hidden lg:flex flex-col border-r bg-sidebar sticky top-16 h-[calc(100vh-4rem)] z-40 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
-      animate={{ width: collapsed ? 64 : 256 }}
     >
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-2">
@@ -48,15 +38,7 @@ export function Sidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCo
                 )}
               >
                 <item.icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {item.label}
-                  </motion.span>
-                )}
+                {!collapsed && <span>{item.label}</span>}
               </Button>
             </Link>
           ))}
@@ -72,7 +54,7 @@ export function Sidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCo
           <ChevronLeft className={cn("h-5 w-5 transition-transform duration-300", collapsed && "rotate-180")} />
         </Button>
       </div>
-    </motion.aside>
+    </aside>
   );
 }
 
@@ -92,7 +74,7 @@ export function MobileSidebar() {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[80%] sm:w-[350px] p-0">
+      <SheetContent side="left" className="w-[80%] sm:w-87.5 p-0">
         <div className="flex flex-col h-full bg-sidebar">
           <div className="p-6 border-b flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">

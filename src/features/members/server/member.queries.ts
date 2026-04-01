@@ -1,7 +1,6 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { getCurrentUserId } from "@/lib/current-user";
 
 export async function fetchUserById(id: string) {
   const supabase = await createSupabaseServerClient();
@@ -19,46 +18,13 @@ export async function fetchUsers() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("users")
-    .select(`
-    id,
-    name`);
-  return data
+    .select("id, name");
+
+  return data;
 }
 
 export async function fetchUsersByTeamId(teamId: string) {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    return [];
-  }
-
   const supabase = await createSupabaseServerClient();
-
-  const [{ data: ownedTeam, error: ownedTeamError }, { data: membership, error: membershipError }] = await Promise.all([
-    supabase
-      .from("teams")
-      .select("id")
-      .eq("id", teamId)
-      .eq("created_by", userId)
-      .maybeSingle(),
-    supabase
-      .from("team_member")
-      .select("id")
-      .eq("team_id", teamId)
-      .eq("user_id", userId)
-      .maybeSingle(),
-  ]);
-
-  if (ownedTeamError) {
-    console.error("fetchUsersByTeamId owner check failed:", ownedTeamError.message);
-  }
-
-  if (membershipError) {
-    console.error("fetchUsersByTeamId membership check failed:", membershipError.message);
-  }
-
-  if (!ownedTeam?.id && !membership?.id) {
-    return [];
-  }
 
   const { data: members, error: membersError } = await supabase
     .from("team_member")
@@ -70,7 +36,9 @@ export async function fetchUsersByTeamId(teamId: string) {
     return [];
   }
 
-  const uniqueUserIds = Array.from(new Set((members ?? []).map((member) => member.user_id).filter(Boolean)));
+  const uniqueUserIds = Array.from(
+    new Set((members ?? []).map((member) => member.user_id).filter(Boolean))
+  );
 
   let usersById = new Map<string, { name: string | null; email: string | null }>();
   if (uniqueUserIds.length > 0) {
