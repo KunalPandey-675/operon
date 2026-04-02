@@ -87,36 +87,131 @@ async function enrichTasksWithCreatorNames(
     }));
 }
 
-export default async function getTasks() {
-    const supabase = await createSupabaseServerClient();
-
-    const { data: tasks, error } = await supabase
+async function fetchTasksByIds(
+    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+    teamId: string,
+    taskIds?: string[]
+) {
+    const query = supabase
         .from("tasks")
         .select("*")
-        ;
+        .eq("team_id", teamId);
+
+    if (taskIds) {
+        if (taskIds.length === 0) {
+            return [];
+        }
+
+        query.in("id", taskIds);
+    }
+
+    const { data: tasks, error } = await query;
 
     if (error) {
-        console.error("getTasks failed:", error.message);
+        console.error("fetchTasksByIds failed:", error.message);
         return [];
     }
 
     return enrichTasksWithCreatorNames(supabase, (tasks ?? []) as TaskRecord[]);
 }
 
-export async function getTasksByTeamId(teamId: string) {
+export default async function getTasks() {
     const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id ?? null;
 
-    const { data: tasks, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("team_id", teamId);
-
-    if (error) {
-        console.error("getTasksByTeamId failed:", error.message);
+    if (!currentUserId) {
         return [];
     }
 
-    return enrichTasksWithCreatorNames(supabase, (tasks ?? []) as TaskRecord[]);
+    const [{ data: tasks, error }, { data: assignments, error: assignmentsError }] = await Promise.all([
+        supabase
+            .from("tasks")
+            .select("*")
+            .eq("created_by", currentUserId),
+        supabase
+            .from("task_assignments")
+            .select("task_id")
+            .eq("user_id", currentUserId),
+    ]);
+
+    if (error) {
+        console.error("getTasks failed:", error.message);
+        return [];
+    }
+
+    if (assignmentsError) {
+        console.error("getTasks assignments failed:", assignmentsError.message);
+    }
+
+    const assignedTaskIds = Array.from(
+        new Set(
+            (assignments ?? [])
+                .map((assignment) => assignment.task_id)
+                .filter((id): id is string => Boolean(id))
+        )
+    );
+
+    const tasksById = new Map<string, TaskRecord>();
+
+    for (const task of (tasks ?? []) as TaskRecord[]) {
+        tasksById.set(task.id, task);
+    }
+
+    if (assignedTaskIds.length > 0) {
+        const { data: assignedTasks, error: assignedTasksError } = await supabase
+            .from("tasks")
+            .select("*")
+            .in("id", assignedTaskIds);
+
+        if (assignedTasksError) {
+            console.error("getTasks assigned tasks failed:", assignedTasksError.message);
+        } else {
+            for (const task of (assignedTasks ?? []) as TaskRecord[]) {
+                tasksById.set(task.id, task);
+            }
+        }
+    }
+
+    return enrichTasksWithCreatorNames(supabase, Array.from(tasksById.values()));
+}
+
+export async function getTasksByTeamId(
+    teamId: string,
+    options?: {
+        currentUserId: string | null;
+        isOwner: boolean;
+    }
+) {
+    const supabase = await createSupabaseServerClient();
+
+    if (options?.isOwner) {
+        return fetchTasksByIds(supabase, teamId);
+    }
+
+    if (!options?.currentUserId) {
+        return [];
+    }
+
+    const { data: assignments, error: assignmentsError } = await supabase
+        .from("task_assignments")
+        .select("task_id")
+        .eq("user_id", options.currentUserId);
+
+    if (assignmentsError) {
+        console.error("getTasksByTeamId assignments failed:", assignmentsError.message);
+        return [];
+    }
+
+    const assignedTaskIds = Array.from(
+        new Set(
+            (assignments ?? [])
+                .map((assignment) => assignment.task_id)
+                .filter((id): id is string => Boolean(id))
+        )
+    );
+
+    return fetchTasksByIds(supabase, teamId, assignedTaskIds);
 }
 
 export async function getTaskCountsByTeamIds(teamIds: string[]) {

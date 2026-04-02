@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { CalendarClock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TaskDetailsHeader from "@/features/tasks/components/TaskDetailsHeader";
 import TaskDetailsContent from "@/features/tasks/components/TaskDetailsContent";
 import TaskDetailsSidebar from "@/features/tasks/components/TaskDetailsSidebar";
+import TaskSettingsSheet from "@/features/tasks/components/TaskSettingsSheet";
 import type { TaskDetailsRecord } from "@/features/tasks/server/task.queries";
 
 type TaskDetailsClientProps = {
@@ -82,6 +84,8 @@ function getPriority(priority: DbTaskPriority | null) {
 }
 
 export default function TaskDetailsClient({ task, workspace, canEdit, currentUserId, messages }: TaskDetailsClientProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   if (!task) {
     return (
       <Card className="mx-auto max-w-3xl rounded-2xl border-dashed border-gray-200 bg-gray-50/70 shadow-none">
@@ -133,7 +137,7 @@ export default function TaskDetailsClient({ task, workspace, canEdit, currentUse
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 py-8">
-      <TaskDetailsHeader backHref={backHref} backLabel={backLabel} canEdit={canEdit} editHref={`/tasks/${task.id}/settings`} />
+      <TaskDetailsHeader backHref={backHref} backLabel={backLabel} canEdit={canEdit} onEditClick={() => setIsSettingsOpen(true)} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
         <section className="space-y-6">
@@ -163,6 +167,8 @@ export default function TaskDetailsClient({ task, workspace, canEdit, currentUse
           />
         </aside>
       </div>
+
+      <TaskSettingsSheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen} task={task} isOwner={canEdit} />
 
       <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
         <CalendarClock className="h-4 w-4 text-blue-500" />

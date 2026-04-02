@@ -10,19 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { deleteWorkspace, renameWorkspace } from "@/features/teams/server/workspace.mutations";
+import { cn } from "@/lib/utils";
 
 type TeamSettingsClientProps = {
   workspace: DbTeamWithRelations | null;
   isOwner: boolean;
+  surface?: "page" | "sheet";
+  onSuccess?: () => void;
 };
 
-export default function TeamSettingsClient({ workspace, isOwner }: TeamSettingsClientProps) {
+export default function TeamSettingsClient({ workspace, isOwner, surface = "page", onSuccess }: TeamSettingsClientProps) {
   const router = useRouter();
   const [name, setName] = useState(workspace?.name ?? "");
   const [description, setDescription] = useState(workspace?.description ?? "");
   const [confirmName, setConfirmName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isSheet = surface === "sheet";
 
   if (!workspace) {
     return (
@@ -69,6 +73,7 @@ export default function TeamSettingsClient({ workspace, isOwner }: TeamSettingsC
       }
 
       toast.success(result.message || "Team updated");
+      onSuccess?.();
       router.refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to rename team";
@@ -99,6 +104,7 @@ export default function TeamSettingsClient({ workspace, isOwner }: TeamSettingsC
       }
 
       toast.success(result.message || "Team deleted");
+      onSuccess?.();
       router.push("/teams");
       router.refresh();
     } catch (error) {
@@ -110,19 +116,29 @@ export default function TeamSettingsClient({ workspace, isOwner }: TeamSettingsC
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 py-8">
-      <Link
-        href={`/teams/${workspace.id}`}
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Team
-      </Link>
+    <div className={cn("space-y-8", isSheet ? "px-1 pb-2 pt-1" : "mx-auto max-w-4xl py-8")}>
+      {isSheet ? (
+        <div className="space-y-2 pr-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-600">Team Settings</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">{workspace.name}</h1>
+          <p className="text-sm text-gray-600">Rename your team or permanently delete it.</p>
+        </div>
+      ) : (
+        <>
+          <Link
+            href={`/teams/${workspace.id}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Team
+          </Link>
 
-      <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Team Settings</h1>
-        <p className="text-sm text-gray-600">Rename your team or permanently delete it.</p>
-      </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Team Settings</h1>
+            <p className="text-sm text-gray-600">Rename your team or permanently delete it.</p>
+          </div>
+        </>
+      )}
 
       {!isOwner ? (
         <Card className="rounded-2xl border-amber-200 bg-amber-50/80 shadow-none">

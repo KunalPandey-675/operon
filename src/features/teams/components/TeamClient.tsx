@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/features/tasks/components/TaskCard";
 import { AvatarGroup } from "@/features/teams/components/AvatarGroup";
+import TeamSettingsSheet from "@/features/teams/components/TeamSettingsSheet";
 function toTaskStatus(task: DbTask): TaskStatus {
   const normalized = (task.status ?? "").trim().toLowerCase();
   const isDone = normalized === "done";
@@ -48,13 +49,15 @@ type TeamMemberDetails = {
 type TeamClientProps = {
   workspace: DbTeamWithRelations | null;
   memberDirectory: TeamMemberDetails[];
+  isOwner: boolean;
 };
 
-export default function TeamClient({ workspace, memberDirectory }: TeamClientProps) {
+export default function TeamClient({ workspace, memberDirectory, isOwner }: TeamClientProps) {
   const [filter, setFilter] = useState("All");
   const [showInvitePanel, setShowInvitePanel] = useState(false);
   const [showMembersList, setShowMembersList] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   if (!workspace) {
     return (
@@ -112,16 +115,16 @@ export default function TeamClient({ workspace, memberDirectory }: TeamClientPro
           Back to Teams
         </Link>
         <div className="flex gap-2">
-          <Link href={`/teams/${workspace.id}/settings`}>
-            <Button variant="outline" size="sm" className="h-9 px-3 border-gray-200">
-              <Settings className="mr-2 h-4 w-4" /> Team Config
-            </Button>
-          </Link>
+          <Button variant="outline" size="sm" className="h-9 px-3 border-gray-200" onClick={() => setIsSettingsOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" /> Team Config
+          </Button>
           <Button variant="ghost" size="icon" className="h-9 w-9">
             <MoreVertical className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <TeamSettingsSheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen} workspace={workspace} isOwner={isOwner} />
 
       {/* Team Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b">

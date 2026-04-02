@@ -11,19 +11,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { TaskDetailsRecord } from "@/features/tasks/server/task.queries";
 import { deleteTask, renameTask } from "@/features/tasks/server/task.mutations";
+import { cn } from "@/lib/utils";
 
 type TaskSettingsClientProps = {
   task: TaskDetailsRecord | null;
   isOwner: boolean;
+  surface?: "page" | "sheet";
+  onSuccess?: () => void;
 };
 
-export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClientProps) {
+export default function TaskSettingsClient({ task, isOwner, surface = "page", onSuccess }: TaskSettingsClientProps) {
   const router = useRouter();
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [confirmTitle, setConfirmTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isSheet = surface === "sheet";
 
   if (!task) {
     return (
@@ -70,6 +74,7 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
       }
 
       toast.success(result.message || "Task updated");
+      onSuccess?.();
       router.refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to rename task";
@@ -100,6 +105,7 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
       }
 
       toast.success(result.message || "Task deleted");
+      onSuccess?.();
       router.push("/tasks");
       router.refresh();
     } catch (error) {
@@ -111,19 +117,29 @@ export default function TaskSettingsClient({ task, isOwner }: TaskSettingsClient
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 py-8">
-      <Link
-        href={`/tasks/${task.id}`}
-        className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Task
-      </Link>
+    <div className={cn("space-y-8", isSheet ? "px-1 pb-2 pt-1" : "mx-auto max-w-4xl py-8")}>
+      {isSheet ? (
+        <div className="space-y-2 pr-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-600">Task Settings</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">{task.title}</h1>
+          <p className="text-sm text-gray-600">Rename your task or permanently delete it.</p>
+        </div>
+      ) : (
+        <>
+          <Link
+            href={`/tasks/${task.id}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-blue-600"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Task
+          </Link>
 
-      <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Task Settings</h1>
-        <p className="text-sm text-gray-600">Rename your task or permanently delete it.</p>
-      </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Task Settings</h1>
+            <p className="text-sm text-gray-600">Rename your task or permanently delete it.</p>
+          </div>
+        </>
+      )}
 
       {!isOwner ? (
         <Card className="rounded-2xl border-amber-200 bg-amber-50/80 shadow-none">
