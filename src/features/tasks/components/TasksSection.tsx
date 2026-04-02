@@ -2,10 +2,35 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Calendar, Filter, Plus, Search } from "lucide-react";
+import { 
+  ArrowRight, 
+  Calendar, 
+  Filter, 
+  Plus, 
+  Search, 
+  LayoutList,
+  LayoutGrid,
+  SearchX,
+  Target,
+  Users,
+  ChevronRight,
+  MoreVertical,
+  Activity,
+  Sparkles
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/features/tasks/components/StatusBadge";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 const statusOptions = ["All", "todo", "in_progress", "done"] as const;
 
@@ -61,123 +86,192 @@ export default function TaskSection({ tasks, teams }: { tasks: DbTask[]; teams: 
     }, [query, statusFilter, teamFilter, tasks, teams]);
 
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between pb-6 border-b">
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Tasks</h1>
-                    <p className="text-gray-500">Track work across teams with fast filtering and search.</p>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-10"
+        >
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      <h1 className="text-4xl font-black tracking-tight text-foreground">Tasks</h1>
+                    </div>
+                    <p className="text-muted-foreground text-sm font-medium">Keep your workspace organized and track progress across all team projects.</p>
                 </div>
-                <Link href="/tasks/create">
-                    <Button className="h-11 px-6 bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-100">
-                        <Plus className="mr-2 h-4 w-4" /> Create Task
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/tasks/create">
+                      <Button variant="premium" className="h-11 px-6 rounded-xl font-bold group">
+                          <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" /> 
+                          Create Task
+                      </Button>
+                  </Link>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_220px_220px]">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="flex flex-col md:flex-row items-center gap-4 bg-card/30 p-2 rounded-2xl border border-border/40 transition-all duration-300">
+                <div className="relative flex-1 w-full group">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search by title, description, assignee, or team..."
-                        className="h-11 pl-9"
+                        placeholder="Search for tasks..."
+                        className="w-full pl-10 h-11 bg-transparent border-none focus-visible:ring-0 text-sm placeholder:text-muted-foreground/60 shadow-none"
                     />
                 </div>
+                
+                <Separator orientation="vertical" className="h-6 hidden md:block" />
 
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as (typeof statusOptions)[number])}
-                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                    {statusOptions.map((option) => (
-                        <option key={option} value={option}>
-                            {statusLabels[option]}
-                        </option>
-                    ))}
-                </select>
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(val: string) => setStatusFilter(val as (typeof statusOptions)[number])}
+                    >
+                        <SelectTrigger className="w-full md:w-[150px] h-11 bg-transparent border-none focus:ring-0 px-4 group">
+                          <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors overflow-hidden">
+                            <Activity className="h-4 w-4" />
+                            <div className="flex-1 text-left truncate">
+                              <SelectValue placeholder="Status" />
+                            </div>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-primary/10 shadow-xl">
+                            {statusOptions.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                    {statusLabels[option]}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
-                <select
-                    value={teamFilter}
-                    onChange={(e) => setTeamFilter(e.target.value)}
-                    className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                    <option value="All">All teams</option>
-                    {teams.map((team) => (
-                        <option key={team.id} value={team.id}>
-                            {team.name}
-                        </option>
-                    ))}
-                </select>
+                    <Separator orientation="vertical" className="h-6 hidden md:block" />
+
+                    <Select
+                        value={teamFilter}
+                        onValueChange={setTeamFilter}
+                    >
+                        <SelectTrigger className="w-full md:w-[180px] h-11 bg-transparent border-none focus:ring-0 px-4 group">
+                           <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors overflow-hidden">
+                              <Users className="h-4 w-4" />
+                              <div className="flex-1 text-left truncate">
+                                <SelectValue placeholder="All Teams" />
+                              </div>
+                           </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-primary/10 shadow-xl">
+                            <SelectItem value="All">All Teams</SelectItem>
+                            {teams.map((team) => (
+                                <SelectItem key={team.id} value={team.id}>
+                                    {team.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                <div className="hidden items-center border-b bg-gray-50/70 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 md:grid md:grid-cols-[2fr_1fr_1fr_1fr_auto]">
-                    <span>Task</span>
-                    <span>Team</span>
+            <div className="overflow-hidden rounded-3xl border border-border/40 bg-card/40 backdrop-blur-md shadow-sm">
+                <div className="hidden grid-cols-[2fr_1fr_1fr_1fr_auto] items-center border-b border-border/40 bg-secondary/20 px-8 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/70 md:grid">
+                    <span>Task Context</span>
+                    <span className="flex items-center gap-2">Team <ChevronRight className="h-3 w-3" /></span>
                     <span>Status</span>
                     <span>Assignee</span>
-                    <span className="text-right">Due / Action</span>
+                    <span className="text-right">Due Date</span>
                 </div>
 
                 {filteredTasks.length > 0 ? (
-                    <div>
-                        {filteredTasks.map((task) => {
+                    <div className="divide-y divide-border/40">
+                        <AnimatePresence mode="popLayout">
+                        {filteredTasks.map((task, index) => {
                             const team = teams.find((item) => item.id === task.team_id);
 
                             return (
-                                <div
+                                <motion.div
                                     key={task.id}
-                                    className="grid gap-4 border-b px-6 py-4 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:items-center last:border-b-0"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                                    className="group grid gap-4 px-8 py-6 md:grid-cols-[2fr_1fr_1fr_1fr_auto] md:items-center hover:bg-primary/5 transition-all duration-300 relative"
                                 >
-                                    <div className="space-y-1">
-                                        <p className="font-semibold text-gray-900">{task.title}</p>
-                                        <p className="text-sm text-gray-500 line-clamp-1">{task.description}</p>
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-bold text-foreground group-hover:text-primary transition-colors text-lg leading-tight">
+                                            {task.title}
+                                          </p>
+                                          {index === 0 && (
+                                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" title="Recent activity" />
+                                          )}
+                                        </div>
+                                        <p className="text-xs font-medium text-muted-foreground line-clamp-1 max-w-[400px]">
+                                          {task.description || "No context provided for this task."}
+                                        </p>
                                     </div>
 
-                                    <p className="text-sm font-medium text-gray-600">{team?.name ?? "Unknown team"}</p>
+                                    <div className="flex items-center">
+                                      <Link href={`/teams/${team?.id}`} className="inline-flex items-center gap-2 bg-secondary/40 px-2.5 py-1 rounded-lg border border-transparent hover:border-primary/20 hover:bg-background transition-all">
+                                        <span className="text-[10px] font-bold text-foreground truncate max-w-[120px]">
+                                          {team?.name ?? "Global"}
+                                        </span>
+                                      </Link>
+                                    </div>
 
                                     <div>
                                         {task.status ? (
                                             <StatusBadge status={dbToBadgeStatus[task.status]} />
                                         ) : (
-                                            <span className="text-xs text-gray-400">No status</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest italic">Unassigned</span>
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-2">
-                                        {/* <Avatar className="h-7 w-7 border border-gray-100">
-                                            <AvatarImage src={task.assignee.avatar} />
-                                            <AvatarFallback>{task.assignee.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                                        </Avatar> */}
-                                        <span className="text-sm text-gray-700">{task.created_by_name ?? "Unknown user"}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary">
+                                          {task.created_by_name?.slice(0, 2).toUpperCase() || "OP"}
+                                        </div>
+                                        <span className="text-xs font-bold text-foreground/80">{task.created_by_name ?? "Operator"}</span>
                                     </div>
 
-                                    <div className="flex items-center justify-between gap-3 md:justify-end">
-                                        <span className="inline-flex items-center gap-1 text-sm text-gray-500">
-                                            <Calendar className="h-4 w-4 text-blue-500" />
+                                    <div className="flex items-center justify-between gap-6 md:justify-end">
+                                        <span className={cn(
+                                          "inline-flex items-center gap-1.5 text-[11px] font-bold",
+                                          task.deadline ? "text-muted-foreground" : "text-muted-foreground/30 italic"
+                                        )}>
+                                            <Calendar className="h-3.5 w-3.5" />
                                             {formatDeadline(task.deadline)}
                                         </span>
                                         <Link href={`/tasks/${task.id}`}>
-                                            <Button variant="ghost" size="sm" className="font-semibold text-blue-600 hover:text-blue-700">
-                                                Open <ArrowRight className="ml-1 h-4 w-4" />
+                                            <Button variant="ghost" size="icon" className="group/btn rounded-xl hover:bg-primary/10 transition-colors">
+                                                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover/btn:text-primary transition-all group-hover/btn:translate-x-1" />
                                             </Button>
                                         </Link>
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
+                        </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="px-6 py-12 text-center">
-                        <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
-                            <Filter className="h-5 w-5 text-blue-600" />
+                    <div className="flex flex-col items-center justify-center py-20 bg-secondary/5 text-center">
+                        <div className="h-20 w-20 rounded-full bg-secondary/30 flex items-center justify-center mb-6">
+                            <SearchX className="h-10 w-10 text-muted-foreground/60" />
                         </div>
-                        <p className="font-semibold text-gray-700">No tasks matched your filters.</p>
-                        <p className="text-sm text-gray-500 mt-1">Adjust filters or clear the search query.</p>
+                        <h3 className="text-xl font-bold text-foreground mb-2">No tasks matched</h3>
+                        <p className="text-muted-foreground text-sm max-w-xs mb-8 leading-relaxed">
+                          Try adjusting your search criteria or create a fresh task for your team.
+                        </p>
+                        <div className="flex items-center gap-3">
+                           <Button variant="outline" onClick={() => {setQuery(""); setStatusFilter("All"); setTeamFilter("All");}} className="rounded-xl font-bold px-6 border-border/60">
+                              Clear View
+                           </Button>
+                           <Link href="/tasks/create">
+                              <Button className="rounded-xl font-bold px-6 bg-primary text-primary-foreground group">
+                                <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
+                                Create Task
+                              </Button>
+                           </Link>
+                        </div>
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
-}
+}
