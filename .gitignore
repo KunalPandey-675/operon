@@ -9,7 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+/socket-server/node_modules
 # testing
 /coverage
 
@@ -33,9 +33,16 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# socket-server local envs and build
+/socket-server/.env
+/socket-server/.env.local
+/socket-server/dist
+/socket-server/build
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+supabase/task_messages_owner_access.sql

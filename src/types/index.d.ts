@@ -47,6 +47,25 @@ type DbTask = {
   updated_at: string | null;
 };
 
+type DbTaskMessage = {
+  id: string;
+  task_id: string;
+  team_id: string;
+  sender_id: string;
+  content: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  is_edited: boolean | null;
+};
+
+type DbTaskMessageWithSender = DbTaskMessage & {
+  sender: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
+};
+
 type DbTeamMember = {
   id: string;
   user_id: string;
