@@ -15,9 +15,44 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 const app = express();
+app.use(express.json());
 app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.post("/internal/notify", (req, res) => {
+  const expectedToken = process.env.SOCKET_SERVER_INTERNAL_TOKEN;
+  const providedToken = req.header("x-internal-token");
+
+  if (expectedToken && providedToken !== expectedToken) {
+    res.status(401).json({ ok: false, error: "Unauthorized" });
+    return;
+  }
+
+  const batch = Array.isArray(req.body?.notifications)
+    ? req.body.notifications
+    : req.body?.notification && req.body?.userId
+      ? [{ ...req.body.notification, user_id: req.body.userId }]
+      : [];
+
+  if (batch.length === 0) {
+    res.status(400).json({ ok: false, error: "Missing notifications payload" });
+    return;
+  }
+
+  let delivered = 0;
+  for (const notification of batch) {
+    const userId = notification?.user_id;
+    if (!userId) {
+      continue;
+    }
+
+    io.to(`user:${userId}`).emit("notification:created", notification);
+    delivered += 1;
+  }
+
+  res.json({ ok: true, delivered });
 });
 
 const server = createServer(app);
@@ -129,6 +164,11 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  const userId = socket.data.user?.id;
+  if (userId) {
+    socket.join(`user:${userId}`);
+  }
+
   socket.on("task:join", async ({ taskId }, ack) => {
     const userId = socket.data.user?.id;
     const accessToken = socket.data.user?.accessToken;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUserId } from "@/lib/current-user";
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createNotificationsForUsers } from "@/features/notifications/server/notification.mutations";
 
 export async function createTask(formData: {
     title: string;
@@ -63,10 +64,12 @@ export async function createTask(formData: {
     }
 
     if (formData.assigned_user_ids.length > 0) {
+        const uniqueAssigneeIds = Array.from(new Set(formData.assigned_user_ids));
+
         const { error: assignmentError } = await supabase
             .from("task_assignments")
             .insert(
-                formData.assigned_user_ids.map((userId) => ({
+                uniqueAssigneeIds.map((userId) => ({
                     task_id: data.id,
                     user_id: userId,
                 }))
@@ -78,6 +81,20 @@ export async function createTask(formData: {
                 success: false,
                 error: assignmentError.message || "Task created, but assignments failed",
             };
+        }
+
+        const recipients = uniqueAssigneeIds.filter((assigneeId) => assigneeId !== userId);
+        if (recipients.length > 0) {
+            await createNotificationsForUsers({
+                userIds: recipients,
+                actorId: userId,
+                type: "task.assigned",
+                data: {
+                    taskId: data.id,
+                    title: formData.title,
+                    teamId: formData.team_id,
+                },
+            });
         }
     }
 

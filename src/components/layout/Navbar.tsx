@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  Bell,
   Search,
   Plus,
   HelpCircle,
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export function Navbar({ user }: { user: any }) {
   return (
@@ -45,10 +45,7 @@ export function Navbar({ user }: { user: any }) {
           <HelpCircle className="h-5 w-5" />
         </Button>
         
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 text-muted-foreground hover:text-foreground">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
-        </Button>
+        <NotificationBell />
 
         <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
 

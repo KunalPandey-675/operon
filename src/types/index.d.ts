@@ -66,6 +66,17 @@ type DbTaskMessageWithSender = DbTaskMessage & {
   };
 };
 
+type DbNotification = {
+  id: string;
+  user_id: string;
+  actor_id: string | null;
+  type: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+  read_at: string | null;
+};
+
 type DbTeamMember = {
   id: string;
   user_id: string;

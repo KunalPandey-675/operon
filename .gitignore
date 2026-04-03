@@ -45,4 +45,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
 supabase/task_messages_owner_access.sql
+supabase/notifications.sql
